@@ -41,7 +41,8 @@
     catch (e) { if (isAuth(e) && !isLimit(e)) return 'view'; throw e; }
   }
   const gate = () => location.replace(ROOT);
-  const logout = () => { setCfg({ token: '', role: '' }); gate(); };
+  // signing out also drops what this device cached for offline use
+  const logout = () => { setCfg({ token: '', role: '' }); localStorage.removeItem(LS_VIEW); try { caches.delete('bpl-img').then(gate, gate); } catch (e) { gate(); } };
 
   // ---------- data repo ----------
   async function readJSON(name, ref) {
