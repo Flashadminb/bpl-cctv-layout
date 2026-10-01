@@ -1,5 +1,6 @@
 /* BPL CCTV Layout — online sync through a private GitHub data repo (see config.js)
    Nothing is readable without a token: a read-only token opens view, a read/write one opens edit.
+   People sign in with an ID + password that decrypts their token (see "sign-in" below).
    branch main   : layout.json + images.json (index), normal history
    branch images : the captures, rewritten as a single parentless commit on every change so replaced
                    or deleted pictures drop out of the repo instead of piling up in history
@@ -25,11 +26,9 @@
 
   async function ghRes(path, opt = {}) {
     const c = cfg();
-    const r = await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}${path}`, {
-      method: opt.method || 'GET', cache: 'no-store',
-      headers: Object.assign({ Accept: opt.raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', Authorization: 'Bearer ' + c.token, 'X-GitHub-Api-Version': '2022-11-28' }, opt.headers || {}),
-      body: opt.body ? JSON.stringify(opt.body) : undefined
-    });
+    const headers = Object.assign({ Accept: opt.raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }, opt.headers || {});
+    if (!opt.anon) headers.Authorization = 'Bearer ' + (opt.token || c.token);
+    const r = await fetch(`https://api.github.com/repos/${c.owner}/${opt.repo || c.repo}${path}`, { method: opt.method || 'GET', cache: 'no-store', headers, body: opt.body ? JSON.stringify(opt.body) : undefined });
     if (!r.ok && r.status !== 304) { let msg = ''; try { msg = (await r.json()).message || ''; } catch (e) {} const err = new Error(msg || 'HTTP ' + r.status); err.status = r.status; throw err; }
     return r;
   }
@@ -42,7 +41,78 @@
   }
   const gate = () => location.replace(ROOT);
   // signing out also drops what this device cached for offline use
-  const logout = () => { setCfg({ token: '', role: '' }); localStorage.removeItem(LS_VIEW); try { caches.delete('bpl-img').then(gate, gate); } catch (e) { gate(); } };
+  const logout = () => { setCfg({ token: '', role: '', slot: '', stamp: '' }); localStorage.removeItem(LS_VIEW); try { caches.delete('bpl-img').then(gate, gate); } catch (e) { gate(); } };
+
+  // ---------- sign-in with ID + password ----------
+  // access.json (public repo, see config.js) holds each GitHub token encrypted with a key derived from
+  // "id\npassword". The IDs are listed on the sign-in page, so the password alone is the secret and
+  // the slow key derivation is what stands between a downloaded access.json and a guess. A device stays
+  // signed in until its sign-in's password changes (the entry's salt is its stamp). Changing a password only
+  // re-encrypts the same token; to lock out someone who already signed in, regenerate the token on GitHub.
+  const ACCESS = () => (window.BPL_ACCESS || {}).repo || 'bpl-cctv-access', KDF_ITER = 2000000, PW_MIN = 6;
+  const enc = new TextEncoder(), b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf))), unb64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+  const b64text = s => b64(enc.encode(s));
+  const secretOf = (id, pw) => String(id).trim().toLowerCase() + '\n' + pw;
+  async function keyOf(secret, salt, iter) {
+    const k = await crypto.subtle.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function seal(secret, token) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await keyOf(secret, salt, KDF_ITER), enc.encode(token));
+    return { salt: b64(salt), iv: b64(iv), iter: KDF_ITER, ct: b64(ct) };
+  }
+  async function unseal(secret, e) {
+    try { return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(e.iv) }, await keyOf(secret, unb64(e.salt), e.iter), unb64(e.ct))); } catch (err) { return null; }
+  }
+  async function accessGet(auth) {
+    try { return JSON.parse(await gh('/contents/access.json', { repo: ACCESS(), raw: true, anon: !auth })); }
+    catch (e) { const r = await fetch(`https://raw.githubusercontent.com/${cfg().owner}/${ACCESS()}/main/access.json`, { cache: 'no-store' }); if (!r.ok) throw e; return r.json(); }
+  }
+  // sign-in page: the IDs to offer, view first
+  const accessList = async () => { const users = (await accessGet()).users || {}; return ['view', 'edit'].filter(s => users[s]).map(s => ({ slot: s, id: users[s].id })); };
+  // -> { token, stamp }, or null when the password is wrong
+  async function login(slot, pw) {
+    const u = ((await accessGet()).users || {})[slot], token = u ? await unseal(secretOf(u.id, pw), u) : null;
+    return token ? { token, stamp: u.salt } : null;
+  }
+  // false once the password this device signed in with has been changed; unknown (offline) counts as still valid
+  async function accessFresh() {
+    const s = saved(); if (!s.slot || !s.stamp) return true;
+    try { const u = ((await accessGet()).users || {})[s.slot]; return !!u && u.salt === s.stamp; } catch (e) { return true; }
+  }
+  async function putFile(repo, path, text, message) {
+    let sha; try { sha = (await gh('/contents/' + path, { repo })).sha; } catch (e) { if (e.status !== 404) throw e; }
+    await gh('/contents/' + path, { repo, method: 'PUT', body: { message, content: b64text(text), sha } });
+  }
+  const viewToken = async () => { const f = await readJSON('view-token.json', cfg().branch); return (f && f.token) || ''; };
+  const accessInfo = async () => { const users = (await accessGet(true)).users || {}; return { view: users.view ? users.view.id : '', edit: users.edit ? users.edit.id : '', viewToken: !!(await viewToken()) }; };
+  // edit session only. o = { viewId, viewPw, viewToken, editId, editPw }; an empty password leaves that sign-in unchanged
+  async function setAccess(o) {
+    const fail = m => { throw new Error(m); }, c = cfg();
+    const pasted = (o.viewToken || '').trim();
+    if (!o.viewPw && !o.editPw) fail(pasted ? 'ใส่รหัสผ่านหน้างานด้วย เมื่อเปลี่ยน token หน้างาน' : 'ยังไม่ได้ใส่รหัสผ่านใหม่');
+    if (pasted && !o.viewPw) fail('ใส่รหัสผ่านหน้างานด้วย เมื่อเปลี่ยน token หน้างาน');
+    if (o.viewPw && (!o.viewId.trim() || o.viewPw.length < PW_MIN)) fail('หน้างาน: ต้องมีไอดี และรหัสผ่านอย่างน้อย ' + PW_MIN + ' ตัว');
+    if (o.editPw && (!o.editId.trim() || o.editPw.length < PW_MIN)) fail('หลังบ้าน: ต้องมีไอดี และรหัสผ่านอย่างน้อย ' + PW_MIN + ' ตัว');
+    if (o.viewPw && o.editPw && o.viewPw === o.editPw) fail('รหัสผ่านของหน้างานกับหลังบ้านต้องไม่เหมือนกัน');
+    const users = (await accessGet(true)).users || {};
+    if (o.viewPw) {
+      const t = pasted || await viewToken(); if (!t) fail('ครั้งแรกต้องวาง token หน้างาน (Contents: Read-only) ด้วย');
+      if (pasted) {
+        // the floor staff's token must be able to read and must not be able to write
+        try { await gh('', { token: t }); } catch (e) { fail('token หน้างานใช้ไม่ได้ (' + e.message + ')'); }
+        let writes = true; try { await gh('/git/blobs', { token: t, method: 'POST', body: { content: '', encoding: 'utf-8' } }); } catch (e) { writes = false; }
+        if (writes) fail('token หน้างานนี้แก้ไขข้อมูลได้ — ต้องใช้ token ที่ตั้ง Contents เป็น Read-only');
+        await putFile(c.repo, 'view-token.json', JSON.stringify({ token: t }), 'view token');
+      }
+      users.view = Object.assign(await seal(secretOf(o.viewId, o.viewPw), t), { id: o.viewId.trim() });
+    }
+    if (o.editPw) users.edit = Object.assign(await seal(secretOf(o.editId, o.editPw), c.token), { id: o.editId.trim() });
+    try { await putFile(ACCESS(), 'access.json', JSON.stringify({ v: 1, users }), 'access'); }
+    catch (e) { fail(isAuth(e) ? 'token หลังบ้านยังไม่มีสิทธิ์เขียน repo ' + ACCESS() + ' (ต้องเลือก repo นี้และให้ Contents: Read and write)' : e.message); }
+    if (o.editPw) setCfg({ slot: 'edit', stamp: users.edit.salt });   // this device keeps its own session
+  }
 
   // ---------- data repo ----------
   async function readJSON(name, ref) {
@@ -106,6 +176,7 @@
       try { const was = headSha, sha = await head(); if (sha !== was) { const r = await fetchRemote(sha); keep(r); cb(viewData(r, true)); } } catch (e) {}
     };
     setInterval(poll, ms); document.addEventListener('visibilitychange', poll);
+    setInterval(async () => { if (!(await accessFresh())) logout(); }, 600000);
   }
 
   // ---------- edit: local draft ----------
@@ -220,5 +291,5 @@
     return { layout: out, left };
   }
 
-  B.cloud = { cfg, setCfg, hasToken, probe, gate, logout, viewLoad, watch, editLoad, useRemote, defaultLayout, publish };
+  B.cloud = { cfg, setCfg, hasToken, probe, gate, logout, login, accessList, accessFresh, accessInfo, setAccess, PW_MIN, viewLoad, watch, editLoad, useRemote, defaultLayout, publish };
 })();

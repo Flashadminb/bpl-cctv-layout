@@ -23,8 +23,9 @@ main{width:min(440px,100%);background:#141414;border:2px solid #f2f0e8;box-shado
 .brand>div:last-child{padding:12px 16px;display:flex;flex-direction:column;justify-content:center}
 form{padding:20px 18px 18px;display:flex;flex-direction:column;gap:10px}
 label{font-size:11px;font-weight:800;letter-spacing:.08em;color:#ffd000}
-input{height:46px;width:100%;padding:0 12px;font:inherit;font-size:16px;color:#f2f0e8;background:#1a1a1a;border:1px solid #444}
-input:focus-visible,button:focus-visible{outline:2px solid #ffd000;outline-offset:2px}
+select+label{margin-top:6px}
+input,select{height:46px;width:100%;padding:0 12px;font:inherit;font-size:16px;color:#f2f0e8;background:#1a1a1a;border:1px solid #444}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid #ffd000;outline-offset:2px}
 #msg{margin:0;min-height:18px;font-size:13px;font-weight:600;color:#ff8a73}
 button{height:46px;border:0;background:#ffd000;color:#111;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
 button:hover{background:#ffe04d}
@@ -40,28 +41,39 @@ button:disabled{opacity:.5;cursor:progress}
     <div><h1>CCTV Layout</h1><p>ผังกล้องวงจรปิด · เฉพาะผู้ได้รับอนุญาต</p></div>
   </div>
   <form id="form">
-    <label for="code">รหัสเข้าใช้งาน</label>
-    <input id="code" type="password" autocomplete="off" placeholder="วางรหัสที่ได้รับ" autofocus>
+    <label for="uid">ไอดี</label>
+    <select id="uid"><option value="">กำลังโหลด…</option></select>
+    <label for="code">รหัสผ่าน</label>
+    <input id="code" type="password" autocomplete="current-password" autofocus>
     <p id="msg" role="status"></p>
     <button id="go" type="submit">เข้าใช้งาน</button>
   </form>
-  <p class="hint"><b>รหัสหน้างาน</b> เข้าหน้าดูผัง · <b>รหัสหลังบ้าน</b> เข้าหน้าแก้ไข<br>ใส่ครั้งเดียวต่อเครื่อง ระบบจะจำไว้ให้</p>
+  <p class="hint">เลือกไอดีแล้วใส่รหัสผ่าน<br>เครื่องนี้จะจำไว้ให้ จนกว่าผู้ดูแลจะเปลี่ยนรหัสผ่าน</p>
 </main>
 <script>
 (function () {
   const c = BPL.cloud, page = role => location.replace(role === 'edit' ? 'edit/' : 'view/');
   if (c.hasToken() && c.cfg().role) { page(c.cfg().role); return; }
-  const form = document.getElementById('form'), code = document.getElementById('code'), msg = document.getElementById('msg'), go = document.getElementById('go');
+  const form = document.getElementById('form'), uid = document.getElementById('uid'), code = document.getElementById('code'), msg = document.getElementById('msg'), go = document.getElementById('go');
+  // offer the IDs that have a password set, the floor staff's one first
+  c.accessList().then(list => {
+    uid.innerHTML = '';
+    list.forEach(u => { const o = document.createElement('option'); o.value = u.slot; o.textContent = u.id; uid.appendChild(o); });
+    if (!list.length) { const o = document.createElement('option'); o.value = ''; o.textContent = 'ยังไม่ได้ตั้งไอดี (ผู้ดูแลวาง token ในช่องรหัสผ่าน)'; uid.appendChild(o); }
+  }, () => { uid.options[0].textContent = 'โหลดรายชื่อไอดีไม่ได้ ลองรีเฟรช'; });
   form.addEventListener('submit', async ev => {
     ev.preventDefault();
-    const token = code.value.trim(); if (!token) return;
+    if (!code.value) return;
+    const fail = t => { c.setCfg({ token: '', slot: '', stamp: '' }); go.disabled = false; msg.style.color = '#ff8a73'; msg.textContent = t; };
     go.disabled = true; msg.style.color = '#ffd000'; msg.textContent = 'กำลังตรวจสอบ…';
-    c.setCfg({ token, role: '' });
-    try { const role = await c.probe(); c.setCfg({ role }); page(role); }
-    catch (err) {
-      c.setCfg({ token: '' }); go.disabled = false; msg.style.color = '#ff8a73';
-      msg.textContent = err.status ? 'รหัสไม่ถูกต้องหรือหมดอายุ' : 'เชื่อมต่อไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง';
-    }
+    try {
+      // the admin can paste a GitHub token as the password (first setup, or after regenerating a token)
+      const pasted = /^(github_pat_|ghp_)/.test(code.value.trim());
+      const hit = pasted ? { token: code.value.trim(), stamp: '' } : await c.login(uid.value, code.value);
+      if (!hit) return fail('รหัสผ่านไม่ถูกต้อง');
+      c.setCfg({ token: hit.token, role: '', slot: pasted ? '' : uid.value, stamp: hit.stamp });
+      const role = await c.probe(); c.setCfg({ role }); page(role);
+    } catch (err) { fail(err.status === 401 ? 'รหัสนี้ถูกยกเลิกแล้ว ติดต่อผู้ดูแล' : err.status ? 'เข้าใช้งานไม่ได้ (' + err.message + ')' : 'เชื่อมต่อไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง'); }
   });
 })();
 </script>

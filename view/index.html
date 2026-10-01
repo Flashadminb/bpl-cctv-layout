@@ -181,6 +181,7 @@ class Component extends DCLogic {
     const go = async () => {
       if (!window.BPL || !BPL.cloud) return setTimeout(go, 40);
       if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
+      if (!(await BPL.cloud.accessFresh())) { BPL.cloud.logout(); return; }
       const d = await BPL.cloud.viewLoad();
       if (d.authError) { BPL.cloud.logout(); return; }
       this.apply(d, this.fit);

@@ -100,6 +100,7 @@ input[type=range]{accent-color:#ffd000;width:100%}
     <button onClick="{{ toggleGrid }}" style="{{ gridBtn }}">กริด</button>
     <button onClick="{{ toggleSnap }}" title="ดูดติดกริดเวลาย้าย/ปรับขนาด (กด Alt ค้าง = สลับชั่วคราว)" style="{{ snapBtn }}">ดูดกริด</button>
     <button onClick="{{ toggleCones }}" style="{{ coneBtn }}">มุมกล้อง</button>
+    <button onClick="{{ accShow }}" title="ตั้งไอดีและรหัสผ่านเข้าเว็บ" style="height:34px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">รหัสผ่าน</button>
     <button onClick="{{ logout }}" title="ออกจากระบบ / เปลี่ยนรหัส" style="height:34px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">ออก</button>
     <a href="../view/" target="_blank" style="display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;background:#ffd000;color:#111;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;flex:none" style-hover="background:#ffe04d;color:#111"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-eye"></use></svg>หน้าแสดงผล</a>
   </header>
@@ -458,6 +459,36 @@ input[type=range]{accent-color:#ffd000;width:100%}
     <span style="color:#777;overflow:hidden;text-overflow:ellipsis">{{ hint }}</span>
   </footer>
 
+  <sc-if value="{{ accOpen }}" hint-placeholder-val="{{ false }}">
+    <div onPointerDown="{{ stop }}" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:min(560px,100%);max-height:100%;overflow-y:auto;background:#141414;border:2px solid #f2f0e8;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:16px;font-weight:800">ไอดีและรหัสผ่านเข้าเว็บ</div>
+          <button onClick="{{ accClose }}" title="ปิด" style="width:30px;height:30px;border:1px solid #333;background:transparent;color:inherit;cursor:pointer;font-size:16px" style-hover="background:#262626">✕</button>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">หน้างาน · ดูอย่างเดียว — {{ accViewState }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input class="input" value="{{ accViewId }}" onChange="{{ onAccViewId }}" placeholder="ไอดี" autocomplete="off" style="height:34px;padding:0 8px;width:100%"/>
+            <input class="input" value="{{ accViewPw }}" onChange="{{ onAccViewPw }}" placeholder="รหัสผ่านใหม่" autocomplete="off" style="height:34px;padding:0 8px;width:100%"/>
+          </div>
+          <input class="input" type="password" autocomplete="off" value="{{ accViewToken }}" onChange="{{ onAccViewToken }}" placeholder="{{ accViewTokenHint }}" style="height:34px;padding:0 8px;width:100%"/>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">หลังบ้าน · แก้ไขได้ — {{ accEditState }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input class="input" value="{{ accEditId }}" onChange="{{ onAccEditId }}" placeholder="ไอดี" autocomplete="off" style="height:34px;padding:0 8px;width:100%"/>
+            <input class="input" value="{{ accEditPw }}" onChange="{{ onAccEditPw }}" placeholder="รหัสผ่านใหม่" autocomplete="off" style="height:34px;padding:0 8px;width:100%"/>
+          </div>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;line-height:1.6;color:#a6a6a6">เว้นช่องรหัสผ่านว่าง = ไม่เปลี่ยน · อย่างน้อย {{ accMin }} ตัว อย่าใช้ตัวเลขล้วน ให้ผสมตัวอักษรด้วย · เปลี่ยนรหัสผ่านแล้ว เครื่องที่เข้าด้วยรหัสเดิมจะถูกให้ใส่รหัสใหม่ · ถ้ารหัสหลุดถึงคนนอก ให้ Regenerate token บน GitHub ก่อน แล้วค่อยมาตั้งรหัสใหม่</div>
+          <div style="font-size:12px;font-weight:700;min-height:18px;color:#ffd000">{{ accMsg }}</div>
+          <div><button onClick="{{ accSave }}" disabled="{{ accBusy }}" style="height:36px;padding:0 16px;border:0;background:#ffd000;color:#111;font-weight:800;cursor:pointer" style-hover="background:#ffe04d">บันทึกรหัสผ่าน</button></div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -495,7 +526,7 @@ const KIND = { barrow: 'ลูกศรตัวใหญ่', curve: 'ลูก
 const TICON = { barrow: 'i-barrow', curve: 'i-curve', drop: 'i-drop', cam: 'i-cam', conveyor: 'i-conv', slide: 'i-slide', dock: 'i-dock', door: 'i-door', wall: 'i-wall', zone: 'i-zone', pillar: 'i-pillar', text: 'i-text', pin: 'i-pin', shape: 'i-rect', line: 'i-arrow' };
 
 class Component extends DCLogic {
-  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', dirty: false, pubBusy: false, pubMsg: '' };
+  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
   hist = []; fut = [];
 
   componentDidMount() {
@@ -503,6 +534,7 @@ class Component extends DCLogic {
       if (!window.BPL || !BPL.cloud) return setTimeout(go, 40);
       if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
       if (BPL.cloud.cfg().role !== 'edit') { location.replace('../view/'); return; }
+      if (!(await BPL.cloud.accessFresh())) { BPL.cloud.logout(); return; }
       const d = await BPL.cloud.editLoad(); let layout = d.layout, dirty = d.dirty;
       if (d.authError) { BPL.cloud.logout(); return; }
       if (d.stale && confirm('บนออนไลน์มีเวอร์ชันใหม่กว่า (บันทึกเมื่อ ' + new Date(d.remoteUpdated).toLocaleString('th-TH') + ') แต่เครื่องนี้มีงานที่ยังไม่ได้บันทึกขึ้นออนไลน์\n\nOK = ใช้เวอร์ชันออนไลน์ (ทิ้งงานค้างในเครื่องนี้)\nCancel = แก้งานค้างในเครื่องนี้ต่อ')) { layout = await BPL.cloud.useRemote(); dirty = false; }
@@ -537,6 +569,20 @@ class Component extends DCLogic {
   world(ev) { const r = this.cv.getBoundingClientRect(), { zoom, pan } = this.state; return { x: (ev.clientX - r.left - pan.x) / zoom / BPL.CW, y: (ev.clientY - r.top - pan.y) / zoom / BPL.CH }; }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
 
+  accShow = async () => {
+    this.setState({ acc: { open: true, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: 'กำลังโหลด…', busy: true, info: null } });
+    try { const info = await BPL.cloud.accessInfo(); this.setState({ acc: { ...this.state.acc, info, viewId: info.view, editId: info.edit, msg: '', busy: false } }); }
+    catch (err) { this.setState({ acc: { ...this.state.acc, msg: 'โหลดสถานะไม่ได้: ' + err.message, busy: false } }); }
+  };
+  accSave = async () => {
+    const a = this.state.acc; if (a.busy) return;
+    this.setState({ acc: { ...a, busy: true, msg: 'กำลังบันทึก…' } });
+    try {
+      await BPL.cloud.setAccess(a);
+      const info = await BPL.cloud.accessInfo();
+      this.setState({ acc: { ...this.state.acc, viewPw: '', viewToken: '', editPw: '', info, busy: false, msg: 'บันทึกแล้ว · ใช้รหัสผ่านใหม่เข้าเว็บได้ทันที' } });
+    } catch (err) { this.setState({ acc: { ...this.state.acc, busy: false, msg: err.message } }); }
+  };
   pushHist(key) {
     const now = Date.now();
     if (key && key === this.lk && now - this.lt < 1200) { this.lt = now; return; }
@@ -1035,6 +1081,11 @@ class Component extends DCLogic {
       undo: this.undo, redo: this.redo, noUndo: !this.hist.length, noRedo: !this.fut.length, saveNow: this.saveNow,
       saveBtn: { height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', border: '1px solid ' + (s.dirty ? '#ffd000' : '#333'), background: s.dirty ? '#ffd000' : '#161616', color: s.dirty ? '#111' : '#f2f0e8', fontWeight: 800, fontSize: 12, cursor: s.pubBusy ? 'progress' : 'pointer', opacity: s.pubBusy ? 0.6 : 1 },
       saveText: !ready ? 'กำลังโหลด…' : s.pubBusy ? s.pubMsg : s.dirty ? 'มีการแก้ไขที่ยังไม่ได้บันทึกขึ้นออนไลน์' : (savedAt ? 'ออนไลน์ล่าสุด ' + savedAt : 'ตรงกับออนไลน์แล้ว'),
+      accShow: this.accShow, accSave: this.accSave, accOpen: s.acc.open, accClose: () => this.setState({ acc: { ...s.acc, open: false, viewPw: '', viewToken: '', editPw: '' } }),
+      accViewId: s.acc.viewId, accViewPw: s.acc.viewPw, accViewToken: s.acc.viewToken, accEditId: s.acc.editId, accEditPw: s.acc.editPw, accMsg: s.acc.msg, accBusy: s.acc.busy, accMin: 6,
+      ...Object.fromEntries(['ViewId', 'ViewPw', 'ViewToken', 'EditId', 'EditPw'].map(k => ['onAcc' + k, ev => this.setState({ acc: { ...s.acc, [k[0].toLowerCase() + k.slice(1)]: ev.target.value } })])),
+      accViewState: !s.acc.info ? '…' : s.acc.info.view ? 'ตั้งรหัสแล้ว' : 'ยังไม่ได้ตั้ง', accEditState: !s.acc.info ? '…' : s.acc.info.edit ? 'ตั้งรหัสแล้ว' : 'ยังไม่ได้ตั้ง',
+      accViewTokenHint: s.acc.info && s.acc.info.viewToken ? 'token หน้างาน (ใส่เฉพาะเมื่อสร้าง token ใหม่บน GitHub)' : 'วาง token หน้างาน (Contents: Read-only) — จำเป็นในครั้งแรก',
       logout: () => { if (confirm('ออกจากระบบบนเครื่องนี้? (งานที่ยังไม่ได้บันทึกขึ้นออนไลน์จะยังเก็บอยู่ในเครื่องนี้)')) BPL.cloud.logout(); },
       zoomPct: Math.round(s.zoom * 100) + '%', zoomIn: () => this.zoomBy(1.25), zoomOut: () => this.zoomBy(0.8), fit: () => { this.userMoved = true; this.fit(); }, fitPaper: this.fitPaper,
       toggleGrid: () => this.setState({ showGrid: !s.showGrid }), toggleCones: () => this.setState({ showCones: !s.showCones }), gridBtn: toggle(s.showGrid), coneBtn: toggle(s.showCones),
