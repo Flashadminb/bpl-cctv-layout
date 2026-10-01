@@ -271,8 +271,20 @@ input[type=range]{accent-color:#ffd000;width:100%}
             <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #2a2a2a">
               <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">กล้องที่เห็นจุดนี้ · {{ linkMode }}</div>
               <div style="display:flex;flex-wrap:wrap;gap:4px">
-                <sc-for list="{{ linkCams }}" as="c" hint-placeholder-count="0"><button onClick="{{ c.onClick }}" style="{{ c.s }}">{{ c.t }}</button></sc-for>
+                <sc-for list="{{ linkCams }}" as="c" hint-placeholder-count="0">
+                  <span style="display:inline-flex;border:1px solid #ffd000">
+                    <button onClick="{{ c.onClick }}" title="ไปที่กล้องนี้" style="{{ c.s }}">{{ c.t }}</button>
+                    <button onClick="{{ c.onRemove }}" title="เอากล้องนี้ออกจากจุดนี้" style="height:26px;width:24px;border:0;border-left:1px solid #ffd000;background:transparent;color:#ffd000;font-weight:700;font-size:13px;cursor:pointer" style-hover="background:#3a1a14;color:#ff8a73">×</button>
+                  </span>
+                </sc-for>
               </div>
+              <sc-if value="{{ linkNone }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#8a8a8a">ไม่มีกล้องที่เห็นจุดนี้</div></sc-if>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:6px">
+                <input class="input" value="{{ linkAdd }}" onChange="{{ onLinkAdd }}" onKeyDown="{{ onLinkKey }}" placeholder="เพิ่มเลขกล้อง เช่น 264 หรือ 264, 266" style="height:32px;padding:0 8px;width:100%"/>
+                <button onClick="{{ linkAddGo }}" style="height:32px;padding:0 14px;border:0;background:#ffd000;color:#111;font-weight:800;font-size:12px;cursor:pointer" style-hover="background:#ffe04d">เพิ่ม</button>
+              </div>
+              <sc-if value="{{ linkManual }}" hint-placeholder-val="{{ false }}"><button onClick="{{ linkAuto }}" style="height:30px;padding:0 10px;border:1px solid #333;background:transparent;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">↺ กลับไปคำนวณอัตโนมัติจากมุมกล้อง</button></sc-if>
+              <div style="font-size:11px;line-height:1.5;color:#777">กด × เพื่อเอากล้องที่มองไม่เห็นจริงออก หรือพิมพ์เลขกล้องเพื่อเพิ่ม · หน้าวิวจะแสดงตามรายการนี้</div>
             </div>
           </sc-if>
         </sc-if>
@@ -492,6 +504,8 @@ input[type=range]{accent-color:#ffd000;width:100%}
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+// element types whose covering cameras can be listed and edited
+const LINKABLE = ['drop', 'dock', 'conveyor', 'slide', 'door', 'zone', 'pin'];
 const TOOLS = {
   select: { g: 'sel', name: 'เลือก / ย้าย', key: 'V', icon: 'i-pointer' },
   pan: { g: 'sel', name: 'มือเลื่อนแผ่นงาน', key: 'H', icon: 'i-hand' },
@@ -526,7 +540,7 @@ const KIND = { barrow: 'ลูกศรตัวใหญ่', curve: 'ลูก
 const TICON = { barrow: 'i-barrow', curve: 'i-curve', drop: 'i-drop', cam: 'i-cam', conveyor: 'i-conv', slide: 'i-slide', dock: 'i-dock', door: 'i-door', wall: 'i-wall', zone: 'i-zone', pillar: 'i-pillar', text: 'i-text', pin: 'i-pin', shape: 'i-rect', line: 'i-arrow' };
 
 class Component extends DCLogic {
-  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
+  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', linkAdd: '', dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
   hist = []; fut = [];
 
   componentDidMount() {
@@ -1023,11 +1037,11 @@ class Component extends DCLogic {
     if (hasRotate) { const [cx, cy] = BPL.center(one), a = (one.dir || 0) * Math.PI / 180, r = one.range || 100; rotateStyle = { position: 'absolute', left: cx + r * Math.cos(a) - 8, top: cy + r * Math.sin(a) - 8, width: 16, height: 16, borderRadius: '50%', background: '#ffd000', border: '2px solid #111', cursor: 'grab', zIndex: 9 }; }
 
     // properties
-    let fields = [], geo = [], camSliders = [], seenList = [], linkCams = [], linkMode = '', typeOpts = [], typeOptsTitle = '', hasThick = false, modelOpts = [];
+    let fields = [], geo = [], camSliders = [], seenList = [], linkCams = [], linkMode = '', linkManual = false, linkAddGo = () => {}, linkAuto = () => {}, typeOpts = [], typeOptsTitle = '', hasThick = false, modelOpts = [];
     const pk = one && ready ? BPL.primaryKey(one) : 'label';
     if (one) {
       const e = one, F = (label, key, ph) => ({ label, key, ph: ph || '', value: e[key] ?? '', onChange: ev => this.update(e.id, { [key]: ev.target.value }, e.id + key) });
-      fields = ({ drop: [F('OUT FD', 'fd', 'FD1'), F('ช่อง (Chute)', 'chute', '49A'), F('รหัสสาขา', 'code', '21381'), F('กล้องที่เห็นช่องนี้ (ว่าง = คำนวณจากมุมกล้อง)', 'cams', 'เช่น 292, 293'), F('หมายเหตุ', 'note')],
+      fields = ({ drop: [F('OUT FD', 'fd', 'FD1'), F('ช่อง (Chute)', 'chute', '49A'), F('รหัสสาขา', 'code', '21381'), F('หมายเหตุ', 'note')],
         cam: [F('ชื่อ / จุดติดตั้ง', 'name', 'เช่น หน้าช่อง FD1–FD3'), F('หมายเหตุ', 'note')], dock: [F('ปลายทาง (HUB)', 'hub', '14 SO3_HUB'), F('หมายเหตุ', 'note')],
         pin: [F('รายละเอียด', 'note')], text: e.fit === false ? [F('ขนาดตัวอักษร (px)', 'size', '12')] : [] })[e.type] || [];
       geo = [['X', 'x'], ['Y', 'y'], ['กว้าง', 'w'], ['สูง', 'h']].map(([label, k]) => ({ label, value: Math.round(e[k] * 100) / 100, onChange: ev => { const v = parseFloat(ev.target.value); if (!isNaN(v)) this.update(e.id, { [k]: k === 'w' || k === 'h' ? Math.max(0.25, v) : v }, e.id + k); } }));
@@ -1044,9 +1058,18 @@ class Component extends DCLogic {
         camSliders = [['ทิศ °', 'dir', 0, 359], ['มุมกว้าง °', 'fov', 10, 360], ['ระยะ', 'range', 20, 600]].map(([label, k, min, max]) => ({ label, min, max, value: e[k] || 0, onChange: ev => this.update(e.id, { [k]: +ev.target.value }, e.id + k) }));
         seenList = BPL.seenBy(e, els).slice(0, 30).map(x => ({ t: x.type === 'drop' ? (x.branch || x.fd || 'ช่อง') : (x.label || KIND[x.type]), onClick: () => this.setState({ sel: [x.id] }) }));
       }
-      if (ready && (e.type === 'drop' || e.type === 'dock')) {
-        linkMode = e.cams && String(e.cams).trim() ? 'กำหนดเอง' : 'คำนวณอัตโนมัติ';
-        linkCams = BPL.camsFor(e, els).map(c => ({ t: c.no, s: { height: 26, padding: '0 9px', border: '1px solid #ffd000', background: s.imgs[c.no] ? '#ffd000' : 'transparent', color: s.imgs[c.no] ? '#111' : '#ffd000', fontWeight: 700, fontSize: 12, cursor: 'pointer' }, onClick: () => this.setState({ sel: [c.id] }) }));
+      if (ready && LINKABLE.includes(e.type)) {
+        // e.cams: '' = computed from the camera cones, a list of numbers = set by hand, '-' = set by hand to none
+        linkManual = !!(e.cams && String(e.cams).trim()); linkMode = linkManual ? 'กำหนดเอง' : 'คำนวณอัตโนมัติ';
+        const cur = BPL.camsFor(e, els).map(c => c.no), setCams = list => this.update(e.id, { cams: list.length ? list.join(', ') : '-' });
+        linkCams = BPL.camsFor(e, els).map(c => ({ t: c.no, s: { height: 26, padding: '0 9px', border: 0, background: s.imgs[c.no] ? '#ffd000' : 'transparent', color: s.imgs[c.no] ? '#111' : '#ffd000', fontWeight: 700, fontSize: 12, cursor: 'pointer' }, onClick: () => this.setState({ sel: [c.id] }), onRemove: () => setCams(cur.filter(n => n !== c.no)) }));
+        linkAddGo = () => {
+          const want = s.linkAdd.split(/[\s,]+/).filter(Boolean), miss = [], add = [];
+          want.forEach(n => { const c = cams.find(x => x.no === n) || cams.find(x => parseInt(x.no, 10) === parseInt(n, 10)); if (c) add.push(c.no); else miss.push(n); });
+          if (add.length) { setCams([...new Set([...cur, ...add])]); this.setState({ linkAdd: '' }); }
+          if (miss.length) this.say('ไม่พบกล้องเลข ' + miss.join(', ') + ' ในผัง');
+        };
+        linkAuto = () => this.update(e.id, { cams: '' });
       }
     }
     const PH = { drop: 'ชื่อสาขา เช่น 2BNA_BDC', cam: 'เลขกล้อง เช่น 292', conveyor: 'ชื่อสายพาน', dock: 'เช่น OUT 001 LH', zone: 'ชื่อพื้นที่', text: 'พิมพ์ข้อความ', pin: 'เลข / ตัวอักษร', line: 'ป้ายกำกับ (ไม่บังคับ)', shape: 'ข้อความในรูป (ไม่บังคับ)', wall: 'ป้าย (ไม่บังคับ)' };
@@ -1106,7 +1129,8 @@ class Component extends DCLogic {
       hasTypeOpts: typeOpts.length > 0, typeOpts, typeOptsTitle, typeOptsGrid: { display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, typeOpts.length)},1fr)`, border: '1px solid #333' },
       hasThick, thickVal: one ? (one.thick || 3) : 3, onThick: ev => one && this.update(one.id, { thick: +ev.target.value }, one.id + 'thick'),
       selIsCam: !!(one && one.type === 'cam'), modelOpts, camSliders, seenList, seenCount: seenList.length,
-      selHasCams: !!(one && (one.type === 'drop' || one.type === 'dock')), linkCams, linkMode,
+      selHasCams: !!(one && LINKABLE.includes(one.type)), linkCams, linkMode, linkManual, linkNone: !linkCams.length, linkAddGo, linkAuto,
+      linkAdd: s.linkAdd, onLinkAdd: ev => this.setState({ linkAdd: ev.target.value }), onLinkKey: ev => { if (ev.key === 'Enter') linkAddGo(); },
       camHasImg: !!camImgV, camNoImg: !camImgV, camImgBg: camImgV ? { width: '100%', aspectRatio: '16/9', border: '1px solid #333', background: `#000 url("${camImgV.src}") center/contain no-repeat` } : {}, camImgTime: camImgV ? new Date(camImgV.t).toLocaleString('th-TH') : '',
       onCamFile: ev => { const f = ev.target.files[0]; if (f && one) this.setImg(one.no, f); ev.target.value = ''; },
       delImg: async () => { if (!one) return; await BPL.img.del(one.no); const imgs = { ...s.imgs }; delete imgs[one.no]; this.setState({ imgs, dirty: true }); },
