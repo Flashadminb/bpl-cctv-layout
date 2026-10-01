@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BPL CCTV Layout</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<script src="assets/bpl-store.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/bpl-cloud.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0e0e0e;color:#f2f0e8;font-family:"Archivo","IBM Plex Sans Thai",system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+main{width:min(440px,100%);background:#141414;border:2px solid #f2f0e8;box-shadow:0 16px 40px rgba(0,0,0,.65)}
+.brand{display:flex;align-items:stretch;border-bottom:1px solid #2a2a2a}
+.logo{width:76px;flex:none;background:#ffd000;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;padding:14px 0}
+.logo b{font-weight:800;font-size:22px;letter-spacing:-.02em}
+.logo span{font-size:9px;font-weight:800;letter-spacing:.12em;margin-top:3px}
+.brand h1{margin:0;font-size:18px;font-weight:800;line-height:1.2}
+.brand p{margin:2px 0 0;font-size:12px;color:#8a8a8a}
+.brand>div:last-child{padding:12px 16px;display:flex;flex-direction:column;justify-content:center}
+form{padding:20px 18px 18px;display:flex;flex-direction:column;gap:10px}
+label{font-size:11px;font-weight:800;letter-spacing:.08em;color:#ffd000}
+input{height:46px;width:100%;padding:0 12px;font:inherit;font-size:16px;color:#f2f0e8;background:#1a1a1a;border:1px solid #444}
+input:focus-visible,button:focus-visible{outline:2px solid #ffd000;outline-offset:2px}
+#msg{margin:0;min-height:18px;font-size:13px;font-weight:600;color:#ff8a73}
+button{height:46px;border:0;background:#ffd000;color:#111;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
+button:hover{background:#ffe04d}
+button:disabled{opacity:.5;cursor:progress}
+.hint{margin:0;padding:14px 18px;border-top:1px solid #2a2a2a;font-size:12px;line-height:1.7;color:#a6a6a6}
+.hint b{color:#f2f0e8}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <div class="logo"><b>BPL</b><span>CCTV</span></div>
+    <div><h1>CCTV Layout</h1><p>ผังกล้องวงจรปิด · เฉพาะผู้ได้รับอนุญาต</p></div>
+  </div>
+  <form id="form">
+    <label for="code">รหัสเข้าใช้งาน</label>
+    <input id="code" type="password" autocomplete="off" placeholder="วางรหัสที่ได้รับ" autofocus>
+    <p id="msg" role="status"></p>
+    <button id="go" type="submit">เข้าใช้งาน</button>
+  </form>
+  <p class="hint"><b>รหัสหน้างาน</b> เข้าหน้าดูผัง · <b>รหัสหลังบ้าน</b> เข้าหน้าแก้ไข<br>ใส่ครั้งเดียวต่อเครื่อง ระบบจะจำไว้ให้</p>
+</main>
+<script>
+(function () {
+  const c = BPL.cloud, page = role => location.replace(role === 'edit' ? 'edit/' : 'view/');
+  if (c.hasToken() && c.cfg().role) { page(c.cfg().role); return; }
+  const form = document.getElementById('form'), code = document.getElementById('code'), msg = document.getElementById('msg'), go = document.getElementById('go');
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const token = code.value.trim(); if (!token) return;
+    go.disabled = true; msg.style.color = '#ffd000'; msg.textContent = 'กำลังตรวจสอบ…';
+    c.setCfg({ token, role: '' });
+    try { const role = await c.probe(); c.setCfg({ role }); page(role); }
+    catch (err) {
+      c.setCfg({ token: '' }); go.disabled = false; msg.style.color = '#ff8a73';
+      msg.textContent = err.status ? 'รหัสไม่ถูกต้องหรือหมดอายุ' : 'เชื่อมต่อไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง';
+    }
+  });
+})();
+</script>
+</body>
+</html>

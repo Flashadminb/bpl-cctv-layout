@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BPL CCTV · Floor View</title>
+<script src="../assets/bpl-store.js"></script>
+<script src="../assets/config.js"></script>
+<script src="../assets/bpl-cloud.js"></script>
+<script src="../assets/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../assets/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{--color-bg:#121212;--color-surface:#1b1b1b;--color-text:#f2f0e8;--color-accent:#ffd000;--color-divider:#333;
+--color-neutral-100:#1c1c1c;--color-neutral-200:#232323;--color-neutral-300:#2e2e2e;--color-neutral-400:#444;--color-neutral-500:#666;--color-neutral-600:#888;--color-neutral-700:#a6a6a6;--color-neutral-800:#cfcfcf;--color-neutral-900:#ececec;
+--color-accent-100:#2a2408;--color-accent-200:#3b330b;--color-accent-300:#5c4f0e;--color-accent-400:#ffe04d;--color-accent-500:#ffd000;--color-accent-600:#ffdc3d;--color-accent-700:#ffd000;--color-accent-800:#ffe680;--color-accent-900:#fff4c2;
+--shadow-sm:0 1px 2px rgba(0,0,0,.5);--shadow-md:0 4px 14px rgba(0,0,0,.5);--shadow-lg:0 16px 40px rgba(0,0,0,.65);
+--map-bg:#ffffff;--cell-bg:#ffffff;--cell-line:#1d1d1d;--cell-ink:#111111;--dock-bg:#f1f1ee;--zone-line:#7a7a7a;--zone-bg:rgba(0,0,0,.035);--wall:#1d1d1d;--pillar:#1d1d1d;--pillar-ink:#ffffff;--cam:#ffd000;--cam-ink:#111111;--cam-empty:#111111;--cam-empty-ink:#ffd000;--sel:#ff9f0a}
+html,body{margin:0;height:100%;overflow:hidden;background:#0e0e0e;color:#f2f0e8;font-family:"Archivo","IBM Plex Sans Thai",system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:#ffd000} a:hover{color:#ffe680}
+input,textarea,select,button{font-family:inherit}
+button:disabled{opacity:.35;cursor:not-allowed}
+::selection{background:#ffd000;color:#111}
+:focus-visible{outline:2px solid #ffd000;outline-offset:2px}
+.input{background:#1a1a1a;color:#f2f0e8;border-color:#333}
+input[type=range]{accent-color:#ffd000;width:100%}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#333}::-webkit-scrollbar-track{background:#141414}
+@media (max-width:1180px){[data-hide-narrow]{display:none !important}}
+</style>
+</helmet>
+<div style="position:fixed;inset:0;display:grid;grid-template-rows:64px minmax(0,1fr)">
+  <header style="display:flex;align-items:center;gap:14px;padding:0 14px 0 0;border-bottom:1px solid #2a2a2a;background:#0b0b0b;min-width:0;position:relative;z-index:30">
+    <div style="width:76px;height:64px;flex:none;background:#ffd000;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><div style="font-weight:900;font-size:22px;letter-spacing:-0.02em">BPL</div><div style="font-size:9px;font-weight:800;letter-spacing:.12em;margin-top:3px">CCTV</div></div>
+    <div style="display:flex;flex-direction:column;white-space:nowrap">
+      <div style="font-weight:800;font-size:16px;line-height:1.1">CCTV Floor View</div>
+      <div style="font-size:11px;color:#8a8a8a">{{ layoutName }}</div>
+    </div>
+    <span data-hide-narrow="1" style="white-space:nowrap;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;padding:4px 8px;border:1px solid #ffd000;color:#ffd000">หน้างาน · ดูอย่างเดียว</span>
+    <div style="position:relative;flex:1 1 200px;max-width:520px;min-width:120px">
+      <input class="input" placeholder="ค้นหา สาขา · FD · เลขกล้อง · ประตู · HUB" value="{{ q }}" onChange="{{ onQ }}" onKeyDown="{{ onQKey }}" style="height:40px;width:100%;font-size:14px;padding-left:12px"/>
+      <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:0;right:0;top:44px;background:var(--color-bg);border:2px solid var(--color-text);max-height:60vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
+          <div style="padding:8px 12px;font-size:11px;font-weight:700;border-bottom:1px solid var(--color-neutral-300)">พบ {{ resultCount }} รายการ</div>
+          <sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
+            <div onClick="{{ r.onClick }}" style="display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--color-neutral-300);cursor:pointer" style-hover="background:var(--color-accent-100)">
+              <span style="font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--color-accent-700)">{{ r.kind }}</span>
+              <div style="min-width:0"><div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.main }}</div><div style="font-size:11px;color:var(--color-neutral-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sub }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <button onClick="{{ toggleCones }}" style="{{ coneBtn }}">มุมกล้องทั้งหมด</button>
+    <div style="display:flex;align-items:center;border:1px solid #333;height:36px;background:#161616;flex:none">
+      <button onClick="{{ zoomOut }}" style="width:34px;height:32px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:18px;font-weight:700">−</button>
+      <button onClick="{{ zoomIn }}" style="width:34px;height:32px;border:0;border-left:1px solid var(--color-text);background:transparent;color:inherit;cursor:pointer;font-size:18px;font-weight:700">+</button>
+      <button onClick="{{ fit }}" style="height:32px;border:0;border-left:2px solid var(--color-text);background:transparent;color:inherit;cursor:pointer;font-size:12px;font-weight:700;padding:0 10px">ทั้งหมด</button>
+    </div>
+    <button onClick="{{ logout }}" title="ออกจากระบบ / เปลี่ยนรหัส" style="height:36px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">ออก</button>
+    <div data-hide-narrow="1" style="font-size:11px;color:#8a8a8a;white-space:nowrap;text-align:right;line-height:1.3">{{ updatedLabel }}<br/><b style="color:#ffd000">{{ updated }}</b></div>
+  </header>
+
+  <main ref="{{ canvasRef }}" onPointerDown="{{ canvasDown }}" style="{{ canvasStyle }}">
+    <div style="{{ worldStyle }}">
+      <svg width="{{ worldW }}" height="{{ worldH }}" style="position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:39">
+        <sc-for list="{{ cones }}" as="c" hint-placeholder-count="0"><path d="{{ c.d }}" style="{{ c.s }}"></path></sc-for>
+      </svg>
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="0">
+        <div style="{{ it.box }}" onPointerEnter="{{ it.enter }}" onPointerLeave="{{ it.leave }}" onClick="{{ it.click }}">
+          <sc-if value="{{ it.isDrop }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ it.sa }}">{{ it.a }}</div>
+            <sc-if value="{{ it.hasB }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sb }}">{{ it.b }}</div></sc-if>
+            <sc-if value="{{ it.hasC }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sc }}">{{ it.c }}</div></sc-if>
+            <sc-if value="{{ it.hasD }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sd }}">{{ it.d }}</div></sc-if>
+          </sc-if>
+          <sc-if value="{{ it.isCam }}" hint-placeholder-val="{{ false }}"><div style="{{ it.m }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isConv }}" hint-placeholder-val="{{ false }}"><span style="{{ it.sb }}">{{ it.b }}</span><span style="{{ it.sa }}">{{ it.a }}</span></sc-if>
+          <sc-if value="{{ it.isDock }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}">{{ it.a }}</div><div style="{{ it.sb }}">{{ it.b }}</div></sc-if>
+          <sc-if value="{{ it.isLine }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}"></div><div style="{{ it.sb }}"></div><div style="{{ it.sc }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isCurve }}" hint-placeholder-val="{{ false }}"><svg width="1" height="1" style="position:absolute;left:0;top:0;overflow:visible"><path d="{{ it.cd }}" style="{{ it.cs }}"></path><polygon points="{{ it.hd }}" style="{{ it.hs }}"></polygon><polygon points="{{ it.hd2 }}" style="{{ it.hs }}"></polygon></svg><div style="{{ it.sc }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isSimple }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}">{{ it.a }}</div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position:absolute;left:16px;bottom:16px;background:#141414;color:#f2f0e8;border:1px solid #333;box-shadow:var(--shadow-md);padding:10px 12px;display:grid;grid-template-columns:auto auto;gap:6px 10px;align-items:center;font-size:11px;line-height:16px;white-space:nowrap;z-index:10" onPointerDown="{{ stop }}">
+      <div style="background:#ffd000;color:#111;border:1.5px solid #ffd000;font-weight:700;font-size:10px;padding:0 4px;text-align:center">292</div><span>กล้อง มีภาพแล้ว</span>
+      <div style="background:#111;color:#ffd000;border:1.5px solid #ffd000;font-weight:700;font-size:10px;padding:0 4px;text-align:center">293</div><span>กล้อง ยังไม่มีภาพ</span>
+      <div style="height:14px;background:#fff;border:1px solid #fff"></div><span>ช่องดร็อปสาขา</span>
+      <div style="height:14px;background:oklch(0.89 0.15 96);border:1px solid oklch(0.66 0.13 88)"></div><span>สายพาน</span>
+      <div style="height:14px;background:#f1f1ee;border:2px solid #777"></div><span>ประตู / ช่องจอด</span>
+    </div>
+
+    <sc-if value="{{ hasHover }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ hoverStyle }}">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:2px solid var(--color-text)">
+          <div style="font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hv.title }}</div>
+          <div style="font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--color-accent-700);white-space:nowrap">{{ hv.kind }}</div>
+        </div>
+        <sc-if value="{{ hv.isCam }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ hv.has }}" hint-placeholder-val="{{ false }}"><div style="{{ hv.bg }}"></div></sc-if>
+          <sc-if value="{{ hv.none }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-neutral-700);background:var(--color-surface)">ยังไม่มีภาพจากกล้องนี้</div></sc-if>
+        </sc-if>
+        <sc-if value="{{ hv.hasThumbs }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--color-text);padding:2px">
+            <sc-for list="{{ hv.thumbs }}" as="t" hint-placeholder-count="0">
+              <div style="position:relative;background:var(--color-surface);aspect-ratio:16/9">
+                <sc-if value="{{ t.has }}" hint-placeholder-val="{{ false }}"><div style="{{ t.bg }}"></div></sc-if>
+                <div style="position:absolute;left:0;top:0;background:var(--color-accent);color:#fff;font-size:10px;font-weight:800;padding:1px 5px">{{ t.no }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="padding:8px 12px;font-size:11px;color:var(--color-neutral-700);line-height:1.5">{{ hv.sub }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasOpen }}" hint-placeholder-val="{{ false }}">
+      <aside onPointerDown="{{ stop }}" style="position:absolute;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--color-bg);border-left:2px solid var(--color-text);display:flex;flex-direction:column;z-index:20;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px;border-bottom:2px solid var(--color-text)">
+          <div style="min-width:0">
+            <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--color-accent-700)">{{ op.kind }}</div>
+            <div style="font-size:28px;font-weight:800;line-height:1.1;word-break:break-all">{{ op.title }}</div>
+            <div style="font-size:13px;color:var(--color-neutral-700);margin-top:4px">{{ op.sub }}</div>
+          </div>
+          <button class="btn btn-ghost btn-icon" onClick="{{ closeOpen }}" title="ปิด (Esc)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+        </div>
+        <div style="flex:1;overflow-y:auto;min-height:0">
+          <sc-if value="{{ op.isCam }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ op.has }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ op.zoomImg }}" style="{{ op.bg }}"></div>
+              <div style="padding:8px 16px;font-size:11px;color:var(--color-neutral-700);border-bottom:1px solid var(--color-neutral-300)">ภาพแคปเมื่อ {{ op.time }} · คลิกภาพเพื่อขยาย</div>
+            </sc-if>
+            <sc-if value="{{ op.none }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--color-neutral-700);background:var(--color-surface)">ยังไม่มีภาพจากกล้องนี้</div></sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid var(--color-text)">
+              <button onClick="{{ op.prev }}" style="height:44px;border:0;border-right:1px solid var(--color-text);background:transparent;font-weight:700;cursor:pointer;text-align:left;padding:0 16px">← {{ op.prevNo }}</button>
+              <button onClick="{{ op.next }}" style="height:44px;border:0;background:transparent;font-weight:700;cursor:pointer;text-align:left;padding:0 16px">{{ op.nextNo }} →</button>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:800;letter-spacing:.08em">กล้องนี้เห็น</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <sc-for list="{{ op.seen }}" as="s" hint-placeholder-count="0"><button class="tag tag-outline" onClick="{{ s.onClick }}" style="cursor:pointer">{{ s.t }}</button></sc-for>
+              </div>
+              <sc-if value="{{ op.hasNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;line-height:1.5;border-top:1px solid var(--color-neutral-300);padding-top:8px">{{ op.note }}</div></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ op.isArea }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 16px 8px;font-size:11px;font-weight:800;letter-spacing:.08em">กล้องที่เห็นจุดนี้ · {{ op.camCount }}</div>
+            <sc-for list="{{ op.cams }}" as="c" hint-placeholder-count="0">
+              <div onClick="{{ c.onClick }}" style="cursor:pointer;border-top:2px solid var(--color-text)">
+                <sc-if value="{{ c.has }}" hint-placeholder-val="{{ false }}"><div style="{{ c.bg }}"></div></sc-if>
+                <sc-if value="{{ c.none }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-neutral-700);background:var(--color-surface)">ยังไม่มีภาพ</div></sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px"><b style="font-size:15px">กล้อง {{ c.no }}</b><span style="font-size:12px;color:var(--color-neutral-700)">{{ c.name }}</span></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ op.noCams }}" hint-placeholder-val="{{ false }}"><div style="padding:0 16px 16px;font-size:13px;color:var(--color-neutral-700)">ยังไม่มีกล้องที่หันมาจุดนี้</div></sc-if>
+          </sc-if>
+        </div>
+      </aside>
+    </sc-if>
+
+    <sc-if value="{{ hasLight }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeLight }}" onPointerDown="{{ stop }}" style="position:absolute;inset:0;background:rgba(20,18,17,.92);display:flex;align-items:center;justify-content:center;z-index:40;cursor:zoom-out;padding:24px">
+        <div style="{{ lightBg }}"></div>
+      </div>
+    </sc-if>
+  </main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ready: false, layout: null, imgs: {}, zoom: 0.5, pan: { x: 0, y: 0 }, hover: null, open: null, q: '', showCones: false, light: '', drag: null, online: true };
+
+  componentDidMount() {
+    const go = async () => {
+      if (!window.BPL || !BPL.cloud) return setTimeout(go, 40);
+      if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
+      const d = await BPL.cloud.viewLoad();
+      if (d.authError) { BPL.cloud.logout(); return; }
+      this.apply(d, this.fit);
+      BPL.cloud.watch(d => { const before = JSON.stringify(BPL.bounds(this.els())); this.apply(d, () => { const after = BPL.bounds(this.els()); if (!this.userMoved || JSON.stringify(after) !== before) { this.userMoved = false; this.fit(); } }); });
+    };
+    go();
+    this._mv = e => this.onMove(e); this._up = () => { if (this.state.drag) this.setState({ drag: null }); };
+    this._kd = e => { if (e.key === 'Escape') this.setState({ open: null, light: '', q: '' }); };
+    this._ff = () => this.forceUpdate(); window.addEventListener('bpl-fonts', this._ff); window.addEventListener('bpl-img', this._ff);
+    window.addEventListener('pointermove', this._mv); window.addEventListener('pointerup', this._up); window.addEventListener('keydown', this._kd);
+  }
+  componentWillUnmount() { window.removeEventListener('pointermove', this._mv); window.removeEventListener('pointerup', this._up); window.removeEventListener('keydown', this._kd); }
+  apply(d, cb) { this.setState({ ready: true, layout: d.layout, imgs: d.imgs, online: d.online }, cb); }
+  canvasRef = el => { if (!el || el === this.cv) return; this.cv = el;
+    this.ro = new ResizeObserver(() => { const r = el.getBoundingClientRect(); if (!this.userMoved && this.state.ready && r.width > 200 && r.height > 150) this.fit(); }); this.ro.observe(el); el.addEventListener('wheel', e => { e.preventDefault(); const r = el.getBoundingClientRect(); this.zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false }); };
+  els() { return this.state.layout ? this.state.layout.elements : []; }
+  byId(id) { return this.els().find(e => e.id === id); }
+
+  fit = () => {
+    if (!this.cv || this.cv.getBoundingClientRect().width < 200) return; const b = BPL.bounds(this.els()), r = this.cv.getBoundingClientRect();
+    const z = Math.max(0.05, Math.min(2, Math.min((r.width - 48) / (b.w * BPL.CW), (r.height - 48) / (b.h * BPL.CH))));
+    this.setState({ zoom: z, pan: { x: (r.width - b.w * BPL.CW * z) / 2 - b.x * BPL.CW * z, y: 24 - b.y * BPL.CH * z } });
+  };
+  zoomBy(f, mx, my) {
+    this.userMoved = true;
+    const r = this.cv.getBoundingClientRect(); mx = mx ?? r.width / 2; my = my ?? r.height / 2;
+    const { zoom, pan } = this.state, z = Math.max(0.1, Math.min(3, zoom * f));
+    this.setState({ zoom: z, pan: { x: mx - (mx - pan.x) * z / zoom, y: my - (my - pan.y) * z / zoom } });
+  }
+  focus(el) {
+    this.userMoved = true;
+    const r = this.cv.getBoundingClientRect(), z = Math.max(this.state.zoom, 1.1), [cx, cy] = BPL.center(el), off = r.width > 900 ? 220 : 0;
+    this.setState({ zoom: z, pan: { x: (r.width - off) / 2 - cx * z, y: r.height / 2 - cy * z }, open: el.id, hover: null });
+  }
+  canvasDown = ev => { if (ev.button !== 0 && ev.button !== 1) return; this.moved = false; this.setState({ drag: { c0: { x: ev.clientX, y: ev.clientY }, pan0: this.state.pan } }); };
+  onMove(ev) {
+    const d = this.state.drag;
+    if (d) { const dx = ev.clientX - d.c0.x, dy = ev.clientY - d.c0.y; if (Math.abs(dx) + Math.abs(dy) > 4) this.moved = true; if (this.moved) this.userMoved = true; if (this.moved) this.setState({ pan: { x: d.pan0.x + dx, y: d.pan0.y + dy }, hover: null }); return; }
+    if (this.state.hover) this.setState({ hover: { ...this.state.hover, x: ev.clientX, y: ev.clientY } });
+  }
+  sortedCams() { return this.els().filter(e => e.type === 'cam').sort((a, b) => (parseInt(a.no, 10) || 0) - (parseInt(b.no, 10) || 0)); }
+  matches(q) {
+    q = q.trim().toLowerCase(); if (!q) return [];
+    return this.els().filter(e => e.type !== 'pillar' && [e.branch, e.fd, e.chute, e.code, e.no, e.name, e.label, e.hub].some(v => v && String(v).toLowerCase().includes(q)));
+  }
+
+  bgOf(src, extra) { return Object.assign({ width: '100%', aspectRatio: '16/9', background: `#000 url("${src}") center/contain no-repeat` }, extra || {}); }
+  renderVals() {
+    const s = this.state, ready = s.ready && window.BPL, CW = ready ? BPL.CW : 64, CH = ready ? BPL.CH : 22, els = this.els();
+    const cols = (s.layout && s.layout.cols) || 92, rows = (s.layout && s.layout.rows) || 92;
+    const KIND = { drop: 'ช่องดร็อป', cam: 'กล้อง', conveyor: 'สายพาน', slide: 'สไลด์', dock: 'ประตู', door: 'ประตูทางเดิน', zone: 'พื้นที่', text: 'ข้อความ', pillar: 'เสา', pin: 'หมุด', wall: 'ผนัง', shape: 'รูปทรง', line: 'เส้น', barrow: 'ลูกศร', curve: 'ลูกศรโค้ง' };
+    const hits = this.matches(s.q), hitSet = new Set(hits.map(e => e.id));
+    const openEl = s.open ? this.byId(s.open) : null, hovEl = s.hover ? this.byId(s.hover.id) : null;
+    const hl = new Set(hitSet); if (openEl) hl.add(openEl.id); if (hovEl) hl.add(hovEl.id);
+    const dim = s.q.trim() && hits.length ? new Set([...hitSet, ...(openEl ? [openEl.id] : [])]) : null;
+    let items = [], cones = [];
+    if (ready) {
+      items = BPL.sorted(els).map(e => {
+        const it = BPL.view(e, { imgs: s.imgs, hl, dim, v2: true });
+        const interactive = !['pillar', 'text', 'wall', 'line', 'shape', 'barrow', 'curve'].includes(e.type);
+        it.box.cursor = interactive ? 'pointer' : 'inherit';
+        it.enter = interactive ? ev => { if (!s.drag) this.setState({ hover: { id: e.id, x: ev.clientX, y: ev.clientY } }); } : undefined;
+        it.leave = interactive ? () => { if (this.state.hover && this.state.hover.id === e.id) this.setState({ hover: null }); } : undefined;
+        it.click = interactive ? () => { if (!this.moved) this.setState({ open: e.id, hover: null }); } : undefined;
+        return it;
+      });
+      const strong = { fill: 'rgba(255,200,0,.32)', stroke: '#c99700', strokeWidth: 1.5 };
+      const focusCams = new Set();
+      [hovEl, openEl].forEach(x => { if (!x) return; if (x.type === 'cam') focusCams.add(x.id); else if (x.type === 'drop' || x.type === 'dock' || x.type === 'conveyor' || x.type === 'zone') BPL.camsFor(x, els).forEach(c => focusCams.add(c.id)); });
+      cones = els.filter(e => e.type === 'cam' && (s.showCones || focusCams.has(e.id))).map(c => ({ d: BPL.cone(c), s: focusCams.has(c.id) ? strong : { fill: 'rgba(255,200,0,.10)', stroke: 'rgba(190,140,0,.45)', strokeWidth: 1 } }));
+    }
+    const worldStyle = { position: 'absolute', left: 0, top: 0, width: cols * CW, height: rows * CH, transformOrigin: '0 0', transform: `translate(${s.pan.x}px,${s.pan.y}px) scale(${s.zoom})`, background: '#fff', boxShadow: '0 0 0 1px #000, 0 24px 70px rgba(0,0,0,.7)' };
+    const canvasStyle = { position: 'relative', overflow: 'hidden', background: '#0e0e0e', cursor: s.drag && this.moved ? 'grabbing' : 'grab', touchAction: 'none', userSelect: 'none' };
+
+    const imgOf = c => s.imgs[c.no];
+    const label = x => x.type === 'drop' ? (x.branch || x.fd || 'ช่อง') : x.type === 'cam' ? 'กล้อง ' + x.no : (x.label || KIND[x.type]);
+    const subOf = x => x.type === 'drop' ? [x.fd, x.chute, x.code].filter(Boolean).join(' · ') : x.type === 'dock' ? (x.hub || '') : x.type === 'cam' ? (x.name || '') : '';
+
+    // hover card
+    let hv = {}, hoverStyle = {};
+    if (hovEl && ready) {
+      const W = 340, vw = window.innerWidth, vh = window.innerHeight;
+      let left = s.hover.x + 18, top = s.hover.y + 18; if (left + W > vw - 8) left = s.hover.x - W - 18; if (top + 300 > vh) top = Math.max(72, vh - 310);
+      hoverStyle = { position: 'fixed', left, top, width: W, background: 'var(--color-bg)', border: '2px solid var(--color-text)', boxShadow: 'var(--shadow-lg)', zIndex: 50, pointerEvents: 'none' };
+      if (hovEl.type === 'cam') {
+        const im = imgOf(hovEl), seen = BPL.seenBy(hovEl, els).slice(0, 6).map(label);
+        hv = { title: 'กล้อง ' + hovEl.no, kind: hovEl.name || 'CCTV', isCam: true, has: !!im, none: !im, bg: im ? this.bgOf(im.src) : {}, hasThumbs: false, thumbs: [], sub: seen.length ? 'เห็น: ' + seen.join(' · ') : 'คลิกเพื่อดูรายละเอียด' };
+      } else {
+        const cs = BPL.camsFor(hovEl, els).slice(0, 4);
+        hv = { title: label(hovEl), kind: KIND[hovEl.type], isCam: false, hasThumbs: cs.length > 0, thumbs: cs.map(c => ({ no: c.no, has: !!imgOf(c), bg: imgOf(c) ? this.bgOf(imgOf(c).src, { height: '100%', backgroundSize: 'cover' }) : {} })), sub: [subOf(hovEl), cs.length ? 'กล้อง ' + cs.map(c => c.no).join(', ') : 'ไม่มีกล้องที่หันมาจุดนี้'].filter(Boolean).join(' — ') };
+      }
+    }
+
+    // drawer
+    let op = {};
+    if (openEl && ready) {
+      if (openEl.type === 'cam') {
+        const list = this.sortedCams(), i = list.findIndex(c => c.id === openEl.id), prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length], im = imgOf(openEl);
+        op = { kind: 'กล้อง CCTV', title: openEl.no, sub: openEl.name || 'ตำแหน่ง ' + BPL.colName(openEl.x) + (Math.floor(openEl.y) + 1), isCam: true, isArea: false, has: !!im, none: !im, bg: im ? this.bgOf(im.src, { cursor: 'zoom-in' }) : {}, time: im ? new Date(im.t).toLocaleString('th-TH') : '', zoomImg: () => this.setState({ light: im ? im.src : '' }),
+          prevNo: prev ? prev.no : '', nextNo: next ? next.no : '', prev: () => prev && this.focus(prev), next: () => next && this.focus(next),
+          seen: BPL.seenBy(openEl, els).slice(0, 40).map(x => ({ t: label(x), onClick: () => this.focus(x) })), hasNote: !!openEl.note, note: openEl.note || '' };
+      } else {
+        const cs = BPL.camsFor(openEl, els);
+        op = { kind: KIND[openEl.type], title: label(openEl), sub: subOf(openEl), isCam: false, isArea: true, camCount: cs.length, noCams: !cs.length,
+          cams: cs.map(c => ({ no: c.no, name: c.name || '', has: !!imgOf(c), none: !imgOf(c), bg: imgOf(c) ? this.bgOf(imgOf(c).src) : {}, onClick: () => this.focus(c) })) };
+      }
+    }
+
+    const results = hits.slice(0, 30).map(e => ({ kind: KIND[e.type], main: label(e), sub: subOf(e), onClick: () => { this.focus(e); this.setState({ q: '' }); } }));
+    const upd = s.layout && s.layout.updated ? new Date(s.layout.updated).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+
+    return {
+      layoutName: s.layout ? s.layout.name : 'กำลังโหลด…', updated: upd, updatedLabel: s.online ? 'อัปเดต' : 'ออฟไลน์ · ข้อมูลล่าสุด',
+      q: s.q, onQ: ev => this.setState({ q: ev.target.value }), onQKey: ev => { if (ev.key === 'Enter' && hits[0]) { this.focus(hits[0]); } },
+      showResults: !!s.q.trim(), results, resultCount: hits.length,
+      toggleCones: () => this.setState({ showCones: !s.showCones }),
+      coneBtn: { height: 36, padding: '0 12px', border: '1px solid ' + (s.showCones ? '#ffd000' : '#333'), background: s.showCones ? '#2a2408' : '#161616', color: s.showCones ? '#ffd000' : '#cfcfcf', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' },
+      zoomIn: () => this.zoomBy(1.25), zoomOut: () => this.zoomBy(0.8), fit: this.fit,
+      canvasRef: this.canvasRef, canvasDown: this.canvasDown, canvasStyle, worldStyle, worldW: cols * CW, worldH: rows * CH, items, cones,
+      stop: ev => ev.stopPropagation(),
+      logout: () => { if (confirm('ออกจากระบบบนเครื่องนี้?')) BPL.cloud.logout(); },
+      hasHover: !!(hovEl && ready && !s.drag), hv, hoverStyle,
+      hasOpen: !!(openEl && ready), op, closeOpen: () => this.setState({ open: null }),
+      hasLight: !!s.light, lightBg: s.light ? { width: '100%', height: '100%', background: `url("${s.light}") center/contain no-repeat` } : {}, closeLight: () => this.setState({ light: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

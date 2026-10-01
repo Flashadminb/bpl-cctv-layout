@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BPL CCTV · Layout Editor</title>
+<script src="../assets/bpl-store.js"></script>
+<script src="../assets/config.js"></script>
+<script src="../assets/bpl-cloud.js"></script>
+<script src="../assets/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../assets/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{--color-bg:#121212;--color-surface:#1b1b1b;--color-text:#f2f0e8;--color-accent:#ffd000;--color-divider:#333;
+--color-neutral-100:#1c1c1c;--color-neutral-200:#232323;--color-neutral-300:#2e2e2e;--color-neutral-400:#444;--color-neutral-500:#666;--color-neutral-600:#888;--color-neutral-700:#a6a6a6;--color-neutral-800:#cfcfcf;--color-neutral-900:#ececec;
+--color-accent-100:#2a2408;--color-accent-200:#3b330b;--color-accent-300:#5c4f0e;--color-accent-400:#ffe04d;--color-accent-500:#ffd000;--color-accent-600:#ffdc3d;--color-accent-700:#ffd000;--color-accent-800:#ffe680;--color-accent-900:#fff4c2;
+--shadow-sm:0 1px 2px rgba(0,0,0,.5);--shadow-md:0 4px 14px rgba(0,0,0,.5);--shadow-lg:0 16px 40px rgba(0,0,0,.65);
+--map-bg:#ffffff;--cell-bg:#ffffff;--cell-line:#1d1d1d;--cell-ink:#111111;--dock-bg:#f1f1ee;--zone-line:#7a7a7a;--zone-bg:rgba(0,0,0,.035);--wall:#1d1d1d;--pillar:#1d1d1d;--pillar-ink:#ffffff;--cam:#ffd000;--cam-ink:#111111;--cam-empty:#111111;--cam-empty-ink:#ffd000;--sel:#ff9f0a}
+html,body{margin:0;height:100%;overflow:hidden;background:#0e0e0e;color:#f2f0e8;font-family:"Archivo","IBM Plex Sans Thai",system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:#ffd000} a:hover{color:#ffe680}
+input,textarea,select,button{font-family:inherit}
+button:disabled{opacity:.35;cursor:not-allowed}
+::selection{background:#ffd000;color:#111}
+:focus-visible{outline:2px solid #ffd000;outline-offset:2px}
+.input{background:#1a1a1a;color:#f2f0e8;border-color:#333}
+input[type=range]{accent-color:#ffd000;width:100%}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#333}::-webkit-scrollbar-track{background:#141414}
+@media (max-width:1180px){[data-hide-narrow]{display:none !important}}
+</style>
+</helmet>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"></path></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0"></path><path d="M14 10V4a2 2 0 0 0-4 0v2"></path><path d="M10 10.5V6a2 2 0 0 0-4 0v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18"></rect><path d="M7 9h10"></path></symbol>
+    <symbol id="i-droprow" viewBox="0 0 24 24"><rect x="2" y="4" width="6" height="16"></rect><rect x="9" y="4" width="6" height="16"></rect><rect x="16" y="4" width="6" height="16"></rect></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><path d="M16.75 12h3.632a1 1 0 0 1 .894 1.447l-2.034 4.069a1 1 0 0 1-1.708.134l-2.124-2.97"></path><path d="M17.106 9.053a1 1 0 0 1 .447 1.341l-3.106 6.211a1 1 0 0 1-1.342.447L3.61 12.3a2.92 2.92 0 0 1-1.3-3.91L3.69 5.6a2.92 2.92 0 0 1 3.92-1.3z"></path><path d="M2 19h3.76a2 2 0 0 0 1.8-1.1L9 15"></path><path d="M2 21v-4"></path></symbol>
+    <symbol id="i-dome" viewBox="0 0 24 24"><path d="M3 7h18"></path><path d="M5 7a7 7 0 0 0 14 0"></path><circle cx="12" cy="11" r="2"></circle></symbol>
+    <symbol id="i-ptz" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"></circle><circle cx="12" cy="9" r="2"></circle><path d="M8 21h8M12 15v6"></path></symbol>
+    <symbol id="i-fisheye" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3.5"></circle><path d="M12 1v3M12 20v3M1 12h3M20 12h3"></path></symbol>
+    <symbol id="i-conv" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5"></path><path d="m13 17 5-5-5-5"></path></symbol>
+    <symbol id="i-slide" viewBox="0 0 24 24"><path d="M3 20h18L3 6z"></path></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15"></path><path d="m13 5 7 7-7 7"></path></symbol>
+    <symbol id="i-wall" viewBox="0 0 24 24"><rect x="2" y="9" width="20" height="6" fill="currentColor"></rect></symbol>
+    <symbol id="i-dock" viewBox="0 0 24 24"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"></path><path d="M6 18h12"></path><path d="M6 14h12"></path></symbol>
+    <symbol id="i-door" viewBox="0 0 24 24"><path d="M13 4h3a2 2 0 0 1 2 2v14"></path><path d="M2 20h3"></path><path d="M13 20h9"></path><path d="M10 12v.01"></path><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"></path></symbol>
+    <symbol id="i-pillar" viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="8" fill="currentColor"></rect></symbol>
+    <symbol id="i-zone" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" stroke-dasharray="3 3"></rect></symbol>
+    <symbol id="i-room" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"></rect><path d="M3 12h8v9"></path></symbol>
+    <symbol id="i-hatch" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"></rect><path d="M3 15 15 3M9 21 21 9M3 9l6-6M15 21l6-6"></path></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><path d="M4 3v18M20 3v18"></path><path d="M12 4v3M12 10.5v3M12 17v3"></path></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></symbol>
+    <symbol id="i-rect" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"></rect></symbol>
+    <symbol id="i-ellipse" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"></ellipse></symbol>
+    <symbol id="i-line" viewBox="0 0 24 24"><path d="M5 19 19 5"></path></symbol>
+    <symbol id="i-barrow" viewBox="0 0 24 24"><path d="M2 9h11V4.5l9 7.5-9 7.5V15H2z"></path></symbol>
+    <symbol id="i-curve" viewBox="0 0 24 24"><path d="M3 20C3 11 9 6 18 6"></path><path d="m14 2 4 4-4 4"></path></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"></path><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"></path></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></symbol>
+  </defs>
+</svg>
+<div style="position:fixed;inset:0;display:grid;grid-template-rows:56px minmax(0,1fr) 28px;grid-template-columns:76px minmax(0,1fr) 360px;background:#0e0e0e">
+
+  <header style="grid-column:1 / -1;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;padding:0 12px 0 0;border-bottom:1px solid #2a2a2a;background:#0b0b0b;min-width:0;position:relative;z-index:30">
+    <div style="width:76px;height:56px;flex:none;background:#ffd000;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1">
+      <div style="font-weight:900;font-size:20px;letter-spacing:-0.02em">BPL</div>
+      <div style="font-size:9px;font-weight:800;letter-spacing:.12em;margin-top:3px">CCTV</div>
+    </div>
+    <div data-hide-narrow="1" style="display:flex;flex-direction:column;line-height:1.15;white-space:nowrap;flex:none">
+      <div style="font-weight:800;font-size:15px">Layout Studio</div>
+      <div style="font-size:11px;color:#8a8a8a">หลังบ้าน · โหมดแก้ไข</div>
+    </div>
+    <input data-hide-narrow="1" class="input" value="{{ layoutName }}" onChange="{{ onName }}" title="ชื่อเลเอ้า" style="flex:0 1 200px;min-width:80px;height:34px;font-weight:600"/>
+    <div style="width:1px;height:28px;background:#2a2a2a;flex:none"></div>
+    <div style="display:flex;gap:4px;flex:none">
+      <button onClick="{{ undo }}" disabled="{{ noUndo }}" title="ย้อนกลับ (Ctrl+Z)" style="height:34px;display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #333;background:#161616;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer" style-hover="background:#262626"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-undo"></use></svg><span data-hide-narrow="1">ย้อนกลับ</span></button>
+      <button onClick="{{ redo }}" disabled="{{ noRedo }}" title="เดินหน้า (Ctrl+Shift+Z)" style="height:34px;display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #333;background:#161616;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer" style-hover="background:#262626"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-redo"></use></svg><span data-hide-narrow="1">เดินหน้า</span></button>
+      <button onClick="{{ saveNow }}" title="บันทึก (Ctrl+S)" style="{{ saveBtn }}"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-save"></use></svg><span>บันทึก</span></button>
+    </div>
+    <div style="font-size:11px;color:#8a8a8a;white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ saveText }}</div>
+    <div style="flex:1 1 0;min-width:0"></div>
+    <div style="display:flex;align-items:center;border:1px solid #333;height:34px;flex:none;background:#161616">
+      <button onClick="{{ zoomOut }}" style="width:30px;height:32px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;font-weight:700">−</button>
+      <div style="width:48px;text-align:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums">{{ zoomPct }}</div>
+      <button onClick="{{ zoomIn }}" style="width:30px;height:32px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;font-weight:700">+</button>
+      <button onClick="{{ fit }}" title="พอดีงาน (Ctrl+0)" style="height:32px;border:0;border-left:1px solid #333;background:transparent;color:inherit;cursor:pointer;font-size:11px;font-weight:800;padding:0 10px;letter-spacing:.06em">FIT</button>
+      <button onClick="{{ fitPaper }}" title="ดูทั้งแผ่น" style="height:32px;border:0;border-left:1px solid #333;background:transparent;color:inherit;cursor:pointer;font-size:11px;font-weight:800;padding:0 10px">ทั้งแผ่น</button>
+    </div>
+    <button onClick="{{ toggleGrid }}" style="{{ gridBtn }}">กริด</button>
+    <button onClick="{{ toggleSnap }}" title="ดูดติดกริดเวลาย้าย/ปรับขนาด (กด Alt ค้าง = สลับชั่วคราว)" style="{{ snapBtn }}">ดูดกริด</button>
+    <button onClick="{{ toggleCones }}" style="{{ coneBtn }}">มุมกล้อง</button>
+    <button onClick="{{ logout }}" title="ออกจากระบบ / เปลี่ยนรหัส" style="height:34px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">ออก</button>
+    <a href="../view/" target="_blank" style="display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;background:#ffd000;color:#111;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;flex:none" style-hover="background:#ffe04d;color:#111"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-eye"></use></svg>หน้าแสดงผล</a>
+  </header>
+
+  <nav style="grid-row:2;border-right:1px solid #2a2a2a;display:flex;flex-direction:column;align-items:stretch;padding:6px 0;gap:2px;background:#0b0b0b;position:relative;z-index:25">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="7">
+      <button onClick="{{ g.onClick }}" title="{{ g.title }}" style="{{ g.s }}" style-hover="background:#1e1e1e">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#{{ g.icon }}"></use></svg>
+        <span style="font-size:10px;font-weight:700;line-height:1.1">{{ g.label }}</span>
+        <span style="position:absolute;right:5px;bottom:5px;width:0;height:0;border-left:5px solid transparent;border-bottom:5px solid currentColor;opacity:.6"></span>
+      </button>
+    </sc-for>
+    <sc-if value="{{ hasFly }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ flyStyle }}">
+        <div style="padding:10px 14px;font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000;border-bottom:1px solid #2a2a2a">{{ flyTitle }}</div>
+        <sc-for list="{{ flyItems }}" as="t" hint-placeholder-count="0">
+          <button onClick="{{ t.onClick }}" style="{{ t.s }}" style-hover="background:#262626">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><use href="#{{ t.icon }}"></use></svg>
+            <span style="flex:1;text-align:left">{{ t.name }}</span>
+            <span style="font-size:10px;font-weight:800;color:#8a8a8a;min-width:16px;text-align:right">{{ t.key }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </nav>
+
+  <main ref="{{ canvasRef }}" onPointerDown="{{ canvasDown }}" style="{{ canvasStyle }}">
+    <div style="{{ worldStyle }}">
+      <sc-if value="{{ showRulers }}" hint-placeholder-val="{{ false }}">
+        <sc-for list="{{ colHeads }}" as="h" hint-placeholder-count="0"><div style="{{ h.s }}">{{ h.t }}</div></sc-for>
+        <sc-for list="{{ rowHeads }}" as="h" hint-placeholder-count="0"><div style="{{ h.s }}">{{ h.t }}</div></sc-for>
+      </sc-if>
+      <svg width="{{ worldW }}" height="{{ worldH }}" style="position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:39">
+        <sc-for list="{{ cones }}" as="c" hint-placeholder-count="0"><path d="{{ c.d }}" style="{{ c.s }}"></path></sc-for>
+      </svg>
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="0">
+        <div style="{{ it.box }}" title="{{ it.title }}" onPointerDown="{{ it.down }}" onDoubleClick="{{ it.dbl }}">
+          <sc-if value="{{ it.isDrop }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ it.sa }}">{{ it.a }}</div>
+            <sc-if value="{{ it.hasB }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sb }}">{{ it.b }}</div></sc-if>
+            <sc-if value="{{ it.hasC }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sc }}">{{ it.c }}</div></sc-if>
+            <sc-if value="{{ it.hasD }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sd }}">{{ it.d }}</div></sc-if>
+          </sc-if>
+          <sc-if value="{{ it.isCam }}" hint-placeholder-val="{{ false }}"><div style="{{ it.m }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isConv }}" hint-placeholder-val="{{ false }}"><span style="{{ it.sb }}">{{ it.b }}</span><span style="{{ it.sa }}">{{ it.a }}</span></sc-if>
+          <sc-if value="{{ it.isDock }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}">{{ it.a }}</div><div style="{{ it.sb }}">{{ it.b }}</div></sc-if>
+          <sc-if value="{{ it.isLine }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}"></div><div style="{{ it.sb }}"></div><div style="{{ it.sc }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isCurve }}" hint-placeholder-val="{{ false }}"><svg width="1" height="1" style="position:absolute;left:0;top:0;overflow:visible"><path d="{{ it.cd }}" style="{{ it.cs }}"></path><polygon points="{{ it.hd }}" style="{{ it.hs }}"></polygon><polygon points="{{ it.hd2 }}" style="{{ it.hs }}"></polygon></svg><div style="{{ it.sc }}">{{ it.a }}</div></sc-if>
+          <sc-if value="{{ it.isSimple }}" hint-placeholder-val="{{ false }}"><div style="{{ it.sa }}">{{ it.a }}</div></sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ hasMarq }}" hint-placeholder-val="{{ false }}"><div style="{{ marqStyle }}"></div></sc-if>
+      <sc-if value="{{ hasLinePrev }}" hint-placeholder-val="{{ false }}"><div style="{{ linePrev }}"></div></sc-if>
+      <sc-if value="{{ hasXf }}" hint-placeholder-val="{{ false }}"><div style="{{ xfFrame }}"><sc-for list="{{ xfHandles }}" as="hd" hint-placeholder-count="0"><div data-handle="1" title="ลากเพื่อปรับขนาด · Shift = คงสัดส่วน · Alt = ละเอียด" onPointerDown="{{ hd.down }}" style="{{ hd.s }}"></div></sc-for></div></sc-if>
+      <sc-if value="{{ hasTRot }}" hint-placeholder-val="{{ false }}"><div style="{{ tRotStem }}"></div><div data-handle="1" title="ลากเพื่อหมุน (Shift = ทีละ 15°)" onPointerDown="{{ tRotDown }}" style="{{ tRotStyle }}"></div></sc-if>
+      <sc-if value="{{ hasCurveH }}" hint-placeholder-val="{{ false }}"><svg width="1" height="1" style="position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:70"><path d="{{ curveGuide }}" style="fill:none;stroke:#111;stroke-width:1;stroke-dasharray:4 3"></path></svg><sc-for list="{{ curveHandles }}" as="ch" hint-placeholder-count="0"><div data-handle="1" title="{{ ch.t }}" onPointerDown="{{ ch.down }}" style="{{ ch.s }}"></div></sc-for></sc-if>
+      <sc-if value="{{ hasRotate }}" hint-placeholder-val="{{ false }}"><div data-handle="1" title="ลากเพื่อหมุน / ปรับระยะ (Shift = ทีละ 15°)" onPointerDown="{{ rotateDown }}" style="{{ rotateStyle }}"></div></sc-if>
+    </div>
+    <div onPointerDown="{{ stop }}" style="position:absolute;left:14px;top:14px;display:flex;align-items:center;background:#141414;border:1px solid #333;box-shadow:var(--shadow-md);z-index:15;height:34px">
+      <div style="display:flex;align-items:center;gap:6px;padding:0 10px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#a6a6a6;border-right:1px solid #333;height:100%"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-layers"></use></svg>ระดับ</div>
+      <sc-for list="{{ levelBar }}" as="l" hint-placeholder-count="6"><button title="{{ l.title }}" onClick="{{ l.onClick }}" style="{{ l.s }}">{{ l.t }}</button></sc-for>
+    </div>
+    <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:16px;bottom:16px;background:#ffd000;color:#111;padding:10px 14px;font-size:13px;font-weight:700;max-width:440px;z-index:20;box-shadow:var(--shadow-md)">{{ toast }}</div>
+    </sc-if>
+  </main>
+
+  <aside style="grid-row:2;border-left:1px solid #2a2a2a;background:#131313;display:flex;flex-direction:column;min-height:0">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #2a2a2a;flex:none">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.onClick }}" style="{{ t.s }}">{{ t.t }}</button></sc-for>
+    </div>
+    <div style="flex:1;overflow-y:auto;min-height:0">
+
+      <sc-if value="{{ isTabProps }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ selNone }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:20px 18px;display:flex;flex-direction:column;gap:16px">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">เริ่มต้นใช้งาน</div>
+            <div style="font-size:20px;font-weight:800;line-height:1.25;text-wrap:pretty">เลือกเครื่องมือทางซ้าย แล้ววาดบนแผ่นงาน · คลิกชิ้นใดก็ได้เพื่อแก้ไขที่นี่</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:12px;line-height:1.45;align-items:start;border-top:1px solid #2a2a2a;padding-top:14px">
+              <b style="white-space:nowrap;color:#ffd000">ดับเบิลคลิก</b><span>แก้ชื่อทันที</span>
+              <b style="white-space:nowrap;color:#ffd000">Shift + คลิก</b><span>เลือกหลายชิ้น</span>
+              <b style="white-space:nowrap;color:#ffd000">Space + ลาก</b><span>เลื่อนแผ่นงาน · ล้อเมาส์ = ซูม</span>
+              <b style="white-space:nowrap;color:#ffd000">ลูกศร</b><span>ขยับ 1 ช่อง (Shift = 5)</span>
+              <b style="white-space:nowrap;color:#ffd000">Ctrl+Z / Shift+Z</b><span>ย้อนกลับ / เดินหน้า</span>
+              <b style="white-space:nowrap;color:#ffd000">Ctrl+S</b><span>บันทึก</span>
+              <b style="white-space:nowrap;color:#ffd000">Ctrl+D · C · V</b><span>สำเนา · คัดลอก · วาง</span>
+              <b style="white-space:nowrap;color:#ffd000">Delete</b><span>ลบ</span>
+            </div>
+            <div style="font-size:12px;line-height:1.6;border-top:1px solid #2a2a2a;padding-top:14px;color:#cfcfcf"><b style="color:#f2f0e8">ใส่ภาพกล้อง:</b> เลือกกล้องแล้วกด Ctrl+V · หรือลากไฟล์ภาพไปวางบนกล้อง · หรือแท็บ “กล้อง” อัปโหลดหลายภาพ ตั้งชื่อไฟล์เป็นเลขกล้อง</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selOne }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg width="16" height="16" fill="none" stroke="#ffd000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#{{ selIcon }}"></use></svg>
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000;flex:1">{{ selKind }}</div>
+              <button onClick="{{ dup }}" title="ทำสำเนา (Ctrl+D)" style="width:30px;height:30px;border:1px solid #333;background:transparent;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#262626"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-copy"></use></svg></button>
+              <button onClick="{{ del }}" title="ลบ (Delete)" style="width:30px;height:30px;border:1px solid #333;background:transparent;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#3a1a14;color:#ff8a73"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-trash"></use></svg></button>
+            </div>
+            <input data-primary="1" value="{{ primaryVal }}" placeholder="{{ primaryPh }}" onChange="{{ onPrimary }}" style="width:100%;font-size:24px;font-weight:800;background:transparent;color:#f2f0e8;border:0;border-bottom:2px solid #333;padding:4px 0 6px;outline:none" style-focus="border-bottom-color:#ffd000"/>
+            <div style="font-size:11px;color:#8a8a8a">{{ primaryHint }} · ตำแหน่งในชีส <b style="color:#cfcfcf">{{ selCell }}</b></div>
+          </div>
+
+          <sc-if value="{{ selIsCam }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+              <sc-if value="{{ camHasImg }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ camImgBg }}"></div>
+                <div style="font-size:11px;color:#8a8a8a">อัปเดตภาพ {{ camImgTime }}</div>
+              </sc-if>
+              <sc-if value="{{ camNoImg }}" hint-placeholder-val="{{ true }}">
+                <div style="aspect-ratio:16/9;border:1.5px dashed #444;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:#8a8a8a;text-align:center;padding:12px">
+                  <b style="color:#f2f0e8">ยังไม่มีภาพจากกล้องนี้</b><span>กด Ctrl+V เพื่อวางภาพที่แคปไว้</span>
+                </div>
+              </sc-if>
+              <div style="display:flex;gap:6px">
+                <label style="flex:1;height:34px;display:flex;align-items:center;padding:0 12px;border:1px solid #444;cursor:pointer;font-size:13px;font-weight:700" style-hover="background:#262626">อัปโหลดภาพ<input type="file" accept="image/*" onChange="{{ onCamFile }}" style="display:none"/></label>
+                <sc-if value="{{ camHasImg }}" hint-placeholder-val="{{ false }}"><button onClick="{{ delImg }}" style="height:34px;padding:0 12px;border:1px solid #444;background:transparent;color:#ff8a73;font-weight:700;cursor:pointer">ลบภาพ</button></sc-if>
+              </div>
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a;margin-top:6px">ชนิดกล้อง</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #333">
+                <sc-for list="{{ modelOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+              </div>
+              <sc-for list="{{ camSliders }}" as="s" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:72px 1fr 40px;align-items:center;gap:8px;font-size:12px">
+                  <span style="color:#cfcfcf">{{ s.label }}</span>
+                  <input type="range" min="{{ s.min }}" max="{{ s.max }}" value="{{ s.value }}" onChange="{{ s.onChange }}"/>
+                  <span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">{{ s.value }}</span>
+                </div>
+              </sc-for>
+              <div style="font-size:11px;color:#8a8a8a">ลากจุดเหลืองที่ปลายกรวยในแผ่นงาน เพื่อหมุนและปรับระยะ</div>
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a;margin-top:6px">กล้องนี้เห็น · {{ seenCount }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <sc-for list="{{ seenList }}" as="s" hint-placeholder-count="0"><button onClick="{{ s.onClick }}" style="height:24px;padding:0 8px;border:1px solid #444;background:transparent;color:#f2f0e8;font-size:11px;font-weight:600;cursor:pointer" style-hover="border-color:#ffd000">{{ s.t }}</button></sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasFields }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">ข้อมูล</div>
+              <sc-for list="{{ fields }}" as="f" hint-placeholder-count="0">
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <label style="font-size:11px;font-weight:700;color:#cfcfcf">{{ f.label }}</label>
+                  <input class="input" value="{{ f.value }}" placeholder="{{ f.ph }}" onChange="{{ f.onChange }}" style="height:34px"/>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasTypeOpts }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #2a2a2a">
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">{{ typeOptsTitle }}</div>
+              <div style="{{ typeOptsGrid }}">
+                <sc-for list="{{ typeOpts }}" as="o" hint-placeholder-count="0"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+              </div>
+              <sc-if value="{{ hasThick }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:72px 1fr 40px;align-items:center;gap:8px;font-size:12px;margin-top:4px">
+                  <span style="color:#cfcfcf">ความหนา</span>
+                  <input type="range" min="1" max="14" value="{{ thickVal }}" onChange="{{ onThick }}"/>
+                  <span style="text-align:right;font-weight:700">{{ thickVal }}</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ selHasCams }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #2a2a2a">
+              <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">กล้องที่เห็นจุดนี้ · {{ linkMode }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <sc-for list="{{ linkCams }}" as="c" hint-placeholder-count="0"><button onClick="{{ c.onClick }}" style="{{ c.s }}">{{ c.t }}</button></sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ selMany }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">เลือกหลายชิ้น</div>
+            <div style="font-size:24px;font-weight:800">{{ selCount }} ชิ้น</div>
+            <div style="font-size:12px;color:#8a8a8a">{{ selBreakdown }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <sc-for list="{{ manyActs }}" as="a" hint-placeholder-count="6"><button onClick="{{ a.onClick }}" style="height:34px;padding:0 12px;border:1px solid #333;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">{{ a.t }}</button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selAny }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">สีและตัวอักษร</div>
+            <div style="display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;font-size:12px">
+              <span style="color:#cfcfcf">สีพื้น</span>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+                <sc-for list="{{ fillSw }}" as="w" hint-placeholder-count="0"><button title="{{ w.t }}" onClick="{{ w.onClick }}" style="{{ w.s }}"></button></sc-for>
+                <input type="color" value="{{ fillHex }}" onChange="{{ onFillPick }}" title="เลือกสีเอง" style="width:24px;height:24px;padding:0;border:1px solid #666;background:none;cursor:pointer"/>
+              </div>
+              <span style="color:#cfcfcf">สีตัวอักษร</span>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+                <sc-for list="{{ inkSw }}" as="w" hint-placeholder-count="0"><button title="{{ w.t }}" onClick="{{ w.onClick }}" style="{{ w.s }}"></button></sc-for>
+                <input type="color" value="{{ inkHex }}" onChange="{{ onInkPick }}" title="เลือกสีเอง" style="width:24px;height:24px;padding:0;border:1px solid #666;background:none;cursor:pointer"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onClick="{{ toggleBold }}" style="{{ boldBtn }}">B  ตัวหนา</button>
+              <sc-if value="{{ selIsText }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleFit }}" style="{{ fitBtn }}">ขยายเต็มกรอบ</button></sc-if>
+            </div>
+            <div style="display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;font-size:12px">
+              <span style="color:#cfcfcf">ทิศตัวอักษร</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #333">
+                <sc-for list="{{ tdirOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ selCanRot }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:72px 1fr 40px 34px;align-items:center;gap:8px;font-size:12px">
+                <span style="color:#cfcfcf">หมุน °</span>
+                <input type="range" min="-180" max="180" value="{{ rotVal }}" onChange="{{ onRot }}"/>
+                <span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">{{ rotVal }}</span>
+                <button onClick="{{ rotReset }}" title="กลับเป็น 0°" style="height:24px;border:1px solid #444;background:transparent;color:inherit;font-size:11px;font-weight:700;cursor:pointer">0°</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selAny }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+            <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" fill="none" stroke="#8a8a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-layers"></use></svg><div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a;flex:1">ระดับชั้น · {{ levelInfo }}</div></div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #333">
+              <sc-for list="{{ levelOpts }}" as="o" hint-placeholder-count="5"><button title="{{ o.title }}" onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <button onClick="{{ levelUp }}" style="height:32px;padding:0 10px;border:1px solid #333;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">▲ ยกขึ้นบน</button>
+              <button onClick="{{ levelDown }}" style="height:32px;padding:0 10px;border:1px solid #333;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">▼ ลดลงล่าง</button>
+            </div>
+            <div style="display:grid;grid-template-columns:72px 1fr 40px;align-items:center;gap:8px;font-size:12px">
+              <span style="color:#cfcfcf">ความเข้ม</span>
+              <input type="range" min="10" max="100" step="5" value="{{ opVal }}" onChange="{{ onOp }}"/>
+              <span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700">{{ opVal }}%</span>
+            </div>
+            <div style="font-size:11px;color:#8a8a8a;line-height:1.5">ระดับ 5 อยู่บนสุด · ระดับ 1 อยู่ล่างสุด · ใช้แถบ “ระดับ” มุมซ้ายบนของแผ่นงาน เพื่อดูเฉพาะชั้นนั้น (ชั้นอื่นจะจางและกดไม่ได้)</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selOne }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #2a2a2a">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">ตำแหน่งและขนาด (ช่อง)</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <sc-for list="{{ geo }}" as="g" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <label style="font-size:10px;font-weight:700;color:#8a8a8a">{{ g.label }}</label>
+                  <input class="input" type="number" step="0.25" value="{{ g.value }}" onChange="{{ g.onChange }}" style="height:30px;padding:0 6px;width:100%"/>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selAny }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8a8a8a">ทำซ้ำเป็นแถว</div>
+            <div style="font-size:12px;color:#8a8a8a;line-height:1.5">สร้างสำเนาต่อกันหลายชุด เลข FD / เลขกล้อง / หมุด รันต่อให้อัตโนมัติ</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+              <sc-for list="{{ arrFields }}" as="g" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <label style="font-size:10px;font-weight:700;color:#8a8a8a">{{ g.label }}</label>
+                  <input class="input" type="number" value="{{ g.value }}" onChange="{{ g.onChange }}" style="height:30px;padding:0 6px;width:100%"/>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{ runArray }}" style="height:36px;padding:0 14px;border:0;background:#ffd000;color:#111;font-weight:800;cursor:pointer;text-align:left" style-hover="background:#ffe04d">สร้าง {{ arrN }} ชุด</button>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isTabLayers }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#131313;z-index:2">
+          <input class="input" placeholder="ค้นหาชื่อ / สาขา / เลขกล้อง" value="{{ layQ }}" onChange="{{ onLayQ }}" style="height:34px"/>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <sc-for list="{{ layTypes }}" as="o" hint-placeholder-count="0"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+          </div>
+          <div style="font-size:11px;color:#8a8a8a">{{ layInfo }} · พิมพ์ในช่องเพื่อเปลี่ยนชื่อได้ทันที</div>
+        </div>
+        <sc-for list="{{ layList }}" as="r" hint-placeholder-count="0">
+          <div onClick="{{ r.onClick }}" style="{{ r.s }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;opacity:.7"><use href="#{{ r.icon }}"></use></svg>
+            <input value="{{ r.value }}" placeholder="{{ r.ph }}" onChange="{{ r.onChange }}" style="flex:1;min-width:0;height:28px;background:transparent;border:1px solid transparent;color:#f2f0e8;font-size:13px;font-weight:700;padding:0 6px" style-hover="border-color:#333" style-focus="border-color:#ffd000;background:#1a1a1a;outline:none"/>
+            <span style="font-size:10px;color:#8a8a8a;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis">{{ r.sub }}</span>
+          </div>
+        </sc-for>
+      </sc-if>
+
+      <sc-if value="{{ isTabCams }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <div style="font-size:30px;font-weight:800;font-variant-numeric:tabular-nums">{{ camWithImg }}<span style="font-size:16px;color:#8a8a8a"> / {{ camCount }}</span></div>
+            <div style="font-size:12px;font-weight:700;color:#ffd000">มีภาพแล้ว {{ camPct }}</div>
+          </div>
+          <div style="height:6px;background:#2a2a2a"><div style="{{ camBar }}"></div></div>
+          <label style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid #444;cursor:pointer;font-size:13px;font-weight:700" style-hover="background:#262626">อัปโหลดหลายภาพ (ชื่อไฟล์ = เลขกล้อง)<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ onBulk }}" style="display:none"/></label>
+          <input class="input" placeholder="ค้นหาเลขกล้อง / ชื่อ" value="{{ camQ }}" onChange="{{ onCamQ }}" style="height:34px"/>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #333">
+            <sc-for list="{{ camFilters }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+          </div>
+        </div>
+        <sc-for list="{{ camList }}" as="c" hint-placeholder-count="0">
+          <div onClick="{{ c.onClick }}" style="{{ c.s }}">
+            <sc-if value="{{ c.has }}" hint-placeholder-val="{{ false }}"><div style="{{ c.bg }}"></div></sc-if>
+            <sc-if value="{{ c.none }}" hint-placeholder-val="{{ false }}"><div style="width:64px;height:36px;border:1px dashed #555;flex:none"></div></sc-if>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:14px;font-weight:800;font-variant-numeric:tabular-nums">{{ c.no }}</div>
+              <div style="font-size:11px;color:#8a8a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.sub }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </sc-if>
+
+      <sc-if value="{{ isTabData }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">แผ่นงาน</div>
+          <div style="font-size:12px;line-height:1.6;color:#cfcfcf">แผ่นกระดาษขาวมีพื้นที่ว่างรอบด้าน สำหรับวาดเลเอ้ารอบนอกเพิ่มในอนาคต ขยายเพิ่มได้ตลอด ของเดิมไม่เสีย</div>
+          <div style="font-size:13px;font-weight:700">{{ paperText }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <sc-for list="{{ paperActs }}" as="a" hint-placeholder-count="4"><button onClick="{{ a.onClick }}" style="height:34px;padding:0 12px;border:1px solid #333;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">{{ a.t }}</button></sc-for>
+          </div>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">วางจาก GOOGLE SHEETS</div>
+          <div style="font-size:12px;line-height:1.6;color:#cfcfcf">คัดลอกช่วงเซลล์จากชีส (Ctrl+C) แล้ววางที่นี่ ระบบแปลงให้อัตโนมัติ: <b style="color:#f2f0e8">xxx_BDC/PDC</b> → ช่องดร็อป · <b style="color:#f2f0e8">เลข 3 หลัก</b> → กล้อง · <b style="color:#f2f0e8">&gt; &gt; / &lt; &lt;</b> → สายพาน · <b style="color:#f2f0e8">OUT/IN 001</b> → ประตู · <b style="color:#f2f0e8">เสา</b> → เสา</div>
+          <textarea class="input" rows="6" value="{{ impText }}" onChange="{{ onImpText }}" placeholder="วางเซลล์ที่คัดลอกมาที่นี่" style="height:auto;padding:8px;font-size:12px;resize:vertical"></textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <sc-for list="{{ impFields }}" as="g" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <label style="font-size:10px;font-weight:700;color:#8a8a8a">{{ g.label }}</label>
+                <input class="input" value="{{ g.value }}" onChange="{{ g.onChange }}" style="height:30px;padding:0 6px;width:100%"/>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #333">
+            <sc-for list="{{ impModes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+          </div>
+          <button onClick="{{ runImport }}" style="height:36px;padding:0 14px;border:0;background:#ffd000;color:#111;font-weight:800;cursor:pointer;text-align:left" style-hover="background:#ffe04d">แปลงเป็นเลเอ้า</button>
+        </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">ไฟล์เลเอ้า (รวมภาพกล้อง)</div>
+          <div style="font-size:12px;line-height:1.6;color:#cfcfcf">ส่งออกเป็นไฟล์ .json เดียว เก็บเป็นไฟล์สำรอง หรือนำเข้ากลับมาแก้ไขต่อ</div>
+          <button onClick="{{ exportFile }}" style="height:34px;padding:0 12px;border:1px solid #444;background:transparent;color:#f2f0e8;font-weight:700;cursor:pointer;text-align:left" style-hover="background:#262626">ส่งออกไฟล์ .json</button>
+          <label style="height:34px;display:flex;align-items:center;padding:0 12px;border:1px solid #444;cursor:pointer;font-size:13px;font-weight:700" style-hover="background:#262626">นำเข้าไฟล์ .json<input type="file" accept=".json,application/json" onChange="{{ importFile }}" style="display:none"/></label>
+          <button onClick="{{ resetDefault }}" style="height:34px;padding:0 12px;border:1px solid #3a1a14;background:transparent;color:#ff8a73;font-weight:700;cursor:pointer;text-align:left;margin-top:8px">รีเซ็ตเป็นเลเอ้าตั้งต้นจากชีส</button>
+        </div>
+      </sc-if>
+    </div>
+  </aside>
+
+  <footer style="grid-column:1 / -1;border-top:1px solid #2a2a2a;display:flex;align-items:center;gap:20px;padding:0 14px;font-size:11px;background:#0b0b0b;color:#a6a6a6;white-space:nowrap;overflow:hidden">
+    <b style="font-variant-numeric:tabular-nums;min-width:64px;color:#ffd000">{{ cursorText }}</b>
+    <span>{{ countsText }}</span>
+    <span style="color:#777;overflow:hidden;text-overflow:ellipsis">{{ hint }}</span>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TOOLS = {
+  select: { g: 'sel', name: 'เลือก / ย้าย', key: 'V', icon: 'i-pointer' },
+  pan: { g: 'sel', name: 'มือเลื่อนแผ่นงาน', key: 'H', icon: 'i-hand' },
+  drop: { g: 'drop', name: 'ช่องดร็อปเดี่ยว', key: 'D', icon: 'i-drop', mode: 'rect', def: [1, 4], hint: 'ลากเพื่อวาดช่องดร็อป' },
+  droprow: { g: 'drop', name: 'แถวช่องดร็อป', key: 'R', icon: 'i-droprow', mode: 'rect', def: [8, 4], hint: 'ลากยาวแนวนอน = สร้างช่องดร็อปเรียงกันทีละช่อง' },
+  cam: { g: 'cam', name: 'กล้องกระบอก (Bullet)', key: 'C', icon: 'i-cam', mode: 'point' },
+  dome: { g: 'cam', name: 'กล้องโดม', icon: 'i-dome', mode: 'point' },
+  ptz: { g: 'cam', name: 'กล้อง PTZ', icon: 'i-ptz', mode: 'point' },
+  fisheye: { g: 'cam', name: 'กล้อง 360°', icon: 'i-fisheye', mode: 'point' },
+  conveyor: { g: 'flow', name: 'สายพาน', key: 'L', icon: 'i-conv', mode: 'rect', def: [10, 1] },
+  slide: { g: 'flow', name: 'สไลด์ / ทางลาด', icon: 'i-slide', mode: 'rect', def: [3, 2] },
+  arrow: { g: 'flow', name: 'ลูกศรเส้นตรง', key: 'A', icon: 'i-arrow', mode: 'line', hint: 'ลากจากต้นทางไปปลายทาง (Shift = ตรงแนว)' },
+  barrow: { g: 'flow', name: 'ลูกศรตัวใหญ่', key: 'B', icon: 'i-barrow', mode: 'rect', def: [4, 2], hint: 'ลากกรอบเพื่อวาดลูกศรตัวใหญ่ · หมุนได้ด้วยจุดกลมด้านบน' },
+  curve: { g: 'flow', name: 'ลูกศรโค้ง (ปรับงอได้)', key: 'Q', icon: 'i-curve', mode: 'line', hint: 'ลากจากต้นทางไปปลายทาง แล้วลากจุดกลางเพื่อดัดโค้ง' },
+  wall: { g: 'struct', name: 'ผนัง', key: 'W', icon: 'i-wall', mode: 'rect', def: [8, 0.5] },
+  dock: { g: 'struct', name: 'ประตูรถ / ช่องจอด', key: 'K', icon: 'i-dock', mode: 'rect', def: [2, 6] },
+  door: { g: 'struct', name: 'ประตูทางเดิน', icon: 'i-door', mode: 'rect', def: [2, 1] },
+  pillar: { g: 'struct', name: 'เสา', key: 'P', icon: 'i-pillar', mode: 'point' },
+  zone: { g: 'area', name: 'โซน', key: 'Z', icon: 'i-zone', mode: 'rect', def: [4, 3] },
+  room: { g: 'area', name: 'ห้อง', icon: 'i-room', mode: 'rect', def: [6, 4] },
+  hatch: { g: 'area', name: 'พื้นที่ห้ามเข้า', icon: 'i-hatch', mode: 'rect', def: [4, 3] },
+  walk: { g: 'area', name: 'ทางเดิน', icon: 'i-walk', mode: 'rect', def: [8, 1] },
+  text: { g: 'note', name: 'ข้อความ', key: 'T', icon: 'i-text', mode: 'rect', def: [3, 1], hint: 'ลากกรอบ ตัวอักษรจะขยายเต็มกรอบ' },
+  pin: { g: 'note', name: 'หมุดหมายเลข', key: 'M', icon: 'i-pin', mode: 'point' },
+  rect: { g: 'note', name: 'สี่เหลี่ยม', icon: 'i-rect', mode: 'rect', def: [3, 2] },
+  ellipse: { g: 'note', name: 'วงรี / วงกลม', icon: 'i-ellipse', mode: 'rect', def: [3, 2] },
+  line: { g: 'note', name: 'เส้นตรง', icon: 'i-line', mode: 'line', hint: 'ลากจากจุดเริ่มไปจุดปลาย' }
+};
+const GROUPS = [['sel', 'เลือก'], ['drop', 'ดร็อป'], ['cam', 'กล้อง'], ['flow', 'สายพาน'], ['struct', 'โครงสร้าง'], ['area', 'พื้นที่'], ['note', 'วาด/ป้าย']];
+const MODEL = { bullet: { fov: 70, range: 120, t: 'กระบอก' }, dome: { fov: 110, range: 100, t: 'โดม' }, ptz: { fov: 60, range: 240, t: 'PTZ' }, fisheye: { fov: 360, range: 110, t: '360°' } };
+const KIND = { barrow: 'ลูกศรตัวใหญ่', curve: 'ลูกศรโค้ง', drop: 'ช่องดร็อปสาขา', cam: 'กล้อง CCTV', conveyor: 'สายพาน', slide: 'สไลด์', dock: 'ประตูรถ / ช่องจอด', door: 'ประตูทางเดิน', wall: 'ผนัง', zone: 'พื้นที่ / โซน', pillar: 'เสา', text: 'ข้อความ', pin: 'หมุด', shape: 'รูปทรง', line: 'เส้น / ลูกศร' };
+const TICON = { barrow: 'i-barrow', curve: 'i-curve', drop: 'i-drop', cam: 'i-cam', conveyor: 'i-conv', slide: 'i-slide', dock: 'i-dock', door: 'i-door', wall: 'i-wall', zone: 'i-zone', pillar: 'i-pillar', text: 'i-text', pin: 'i-pin', shape: 'i-rect', line: 'i-arrow' };
+
+class Component extends DCLogic {
+  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', dirty: false, pubBusy: false, pubMsg: '' };
+  hist = []; fut = [];
+
+  componentDidMount() {
+    const go = async () => {
+      if (!window.BPL || !BPL.cloud) return setTimeout(go, 40);
+      if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
+      if (BPL.cloud.cfg().role !== 'edit') { location.replace('../view/'); return; }
+      const d = await BPL.cloud.editLoad(); let layout = d.layout, dirty = d.dirty;
+      if (d.authError) { BPL.cloud.logout(); return; }
+      if (d.stale && confirm('บนออนไลน์มีเวอร์ชันใหม่กว่า (บันทึกเมื่อ ' + new Date(d.remoteUpdated).toLocaleString('th-TH') + ') แต่เครื่องนี้มีงานที่ยังไม่ได้บันทึกขึ้นออนไลน์\n\nOK = ใช้เวอร์ชันออนไลน์ (ทิ้งงานค้างในเครื่องนี้)\nCancel = แก้งานค้างในเครื่องนี้ต่อ')) { layout = await BPL.cloud.useRemote(); dirty = false; }
+      this.setState({ ready: true, layout, imgs: d.imgs, savedAt: d.remoteUpdated, dirty }, () => this.fit());
+      if (!d.online) this.say('โหลดข้อมูลออนไลน์ไม่ได้ · กำลังใช้งานที่เก็บไว้ในเครื่องนี้');
+    };
+    go();
+    this._mv = e => this.onMove(e); this._up = e => this.onUp(e); this._kd = e => this.onKey(e);
+    this._ku = e => { if (e.code === 'Space') { this.space = false; this.forceUpdate(); } };
+    this._paste = e => this.onPaste(e);
+    this._ff = () => this.forceUpdate(); window.addEventListener('bpl-fonts', this._ff); window.addEventListener('bpl-img', this._ff);
+    window.addEventListener('pointermove', this._mv); window.addEventListener('pointerup', this._up);
+    window.addEventListener('keydown', this._kd); window.addEventListener('keyup', this._ku); window.addEventListener('paste', this._paste);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('pointermove', this._mv); window.removeEventListener('pointerup', this._up);
+    window.removeEventListener('keydown', this._kd); window.removeEventListener('keyup', this._ku); window.removeEventListener('paste', this._paste);
+    this.ro && this.ro.disconnect();
+  }
+  canvasRef = el => {
+    if (!el || el === this.cv) return; this.cv = el;
+    this.ro = new ResizeObserver(() => { const r = el.getBoundingClientRect(); if (!this.userMoved && this.state.ready && r.width > 200 && r.height > 150) this.fit(); }); this.ro.observe(el);
+    el.addEventListener('wheel', e => this.onWheel(e), { passive: false });
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', e => this.onDropFile(e));
+  };
+
+  els() { return this.state.layout ? this.state.layout.elements : []; }
+  byId(id) { return this.els().find(e => e.id === id); }
+  off() { const l = this.state.layout || {}; return { ox: l.ox || 0, oy: l.oy || 0 }; }
+  cellRef(x, y) { const { ox, oy } = this.off(), cx = Math.floor(x - ox), cy = Math.floor(y - oy); return cx >= 0 && cy >= 0 ? BPL.colName(cx) + (cy + 1) : 'นอกชีส (' + Math.floor(x) + ',' + Math.floor(y) + ')'; }
+  world(ev) { const r = this.cv.getBoundingClientRect(), { zoom, pan } = this.state; return { x: (ev.clientX - r.left - pan.x) / zoom / BPL.CW, y: (ev.clientY - r.top - pan.y) / zoom / BPL.CH }; }
+  say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
+
+  pushHist(key) {
+    const now = Date.now();
+    if (key && key === this.lk && now - this.lt < 1200) { this.lt = now; return; }
+    this.lk = key; this.lt = now;
+    this.hist.push(JSON.stringify(this.els())); if (this.hist.length > 150) this.hist.shift(); this.fut = [];
+  }
+  setLayout(layout) { this.setState({ layout, saved: false, dirty: true }); this.queueSave(layout); }
+  setEls(els, opt = {}) { if (opt.hist !== false) this.pushHist(opt.key); this.setLayout({ ...this.state.layout, elements: els, updated: Date.now() }); }
+  queueSave(l) { clearTimeout(this.st); this.st = setTimeout(() => { BPL.save(l); this.setState({ saved: true }); }, 500); }
+  saveLocal() { if (!this.state.layout) return; clearTimeout(this.st); BPL.save(this.state.layout); this.setState({ saved: true }); }
+  // บันทึก = keep the draft locally, then publish layout + changed captures to GitHub in one commit
+  saveNow = async force => {
+    if (!this.state.layout || this.state.pubBusy) return;
+    this.saveLocal();
+    if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
+    const snap = this.state.layout, imgs0 = this.state.imgs;
+    this.setState({ pubBusy: true, pubMsg: 'กำลังบันทึกขึ้นออนไลน์…' });
+    try {
+      const res = await BPL.cloud.publish(snap, { force: force === true, onProgress: (i, n) => this.setState({ pubMsg: 'กำลังอัปโหลดภาพ ' + i + '/' + n + '…' }) });
+      const changed = this.state.layout !== snap; if (changed) BPL.save(this.state.layout);
+      this.setState({ pubBusy: false, savedAt: res.layout.updated, dirty: changed || res.left > 0 || this.state.imgs !== imgs0 });
+      this.say(res.left ? 'บันทึกแล้ว แต่ยังเหลือภาพอีก ' + res.left + ' ภาพ (GitHub จำกัดจำนวนอัปโหลดต่อชั่วโมง) · รอสักครู่แล้วกดบันทึกอีกครั้ง' : 'บันทึกขึ้นออนไลน์แล้ว · หน้าวิวจะอัปเดตภายในไม่ถึง 1 นาที');
+    } catch (err) {
+      this.setState({ pubBusy: false });
+      if (err.code === 'CONFLICT') { if (confirm('มีการบันทึกขึ้นออนไลน์จากเครื่องอื่นเมื่อ ' + new Date(err.remoteUpdated).toLocaleString('th-TH') + ' หลังจากที่คุณเปิดหน้านี้\n\nOK = บันทึกทับด้วยงานของคุณ\nCancel = ยกเลิก (รีเฟรชหน้าเพื่อดึงเวอร์ชันล่าสุด)')) this.saveNow(true); }
+      else if (err.status === 401 || err.status === 403 || err.status === 404) this.say('บันทึกไม่สำเร็จ: รหัสไม่มีสิทธิ์เขียนหรือหมดอายุ (' + err.message + ')');
+      else this.say('บันทึกขึ้นออนไลน์ไม่สำเร็จ: ' + err.message);
+    }
+  };
+  update(id, patch, key) { this.setEls(this.els().map(e => e.id === id ? { ...e, ...patch } : e), { key }); }
+  undo = () => { if (!this.hist.length) return; this.fut.push(JSON.stringify(this.els())); this.setEls(JSON.parse(this.hist.pop()), { hist: false }); this.lk = null; };
+  redo = () => { if (!this.fut.length) return; this.hist.push(JSON.stringify(this.els())); this.setEls(JSON.parse(this.fut.pop()), { hist: false }); this.lk = null; };
+
+  fitTo(b) {
+    if (!this.cv) return; const r = this.cv.getBoundingClientRect(); if (r.width < 200) return;
+    const z = Math.max(0.05, Math.min(2, Math.min((r.width - 100) / (b.w * BPL.CW), (r.height - 100) / (b.h * BPL.CH))));
+    this.setState({ zoom: z, pan: { x: (r.width - b.w * BPL.CW * z) / 2 - b.x * BPL.CW * z, y: (r.height - b.h * BPL.CH * z) / 2 - b.y * BPL.CH * z } });
+  }
+  fit = () => this.fitTo(BPL.bounds(this.els()));
+  fitPaper = () => { const l = this.state.layout; this.userMoved = true; this.fitTo({ x: 0, y: 0, w: l.cols, h: l.rows }); };
+  zoomBy(f, mx, my) {
+    this.userMoved = true;
+    const r = this.cv.getBoundingClientRect(); mx = mx ?? r.width / 2; my = my ?? r.height / 2;
+    const { zoom, pan } = this.state, z = Math.max(0.05, Math.min(3, zoom * f));
+    this.setState({ zoom: z, pan: { x: mx - (mx - pan.x) * z / zoom, y: my - (my - pan.y) * z / zoom } });
+  }
+  onWheel(e) { e.preventDefault(); const r = this.cv.getBoundingClientRect(); this.zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }
+  centerOn(el) { this.userMoved = true; const r = this.cv.getBoundingClientRect(), z = Math.max(this.state.zoom, 0.9), [cx, cy] = BPL.center(el); this.setState({ zoom: z, pan: { x: r.width / 2 - cx * z, y: r.height / 2 - cy * z } }); }
+
+  nextCamNo(taken) {
+    const set = new Set(this.els().filter(e => e.type === 'cam').map(e => e.no)); (taken || []).forEach(n => set.add(n));
+    let m = 0; set.forEach(n => { const v = parseInt(n, 10); if (!isNaN(v) && v > m) m = v; });
+    return String(m + 1).padStart(3, '0');
+  }
+  nextPin(taken) { let m = 0; [...this.els().filter(e => e.type === 'pin').map(e => e.label), ...(taken || [])].forEach(n => { const v = parseInt(n, 10); if (!isNaN(v) && v > m) m = v; }); return String(m + 1); }
+  incr(s, k) { return String(s || '').replace(/(\d+)(?!.*\d)/, m => String(+m + k).padStart(m.length, '0')); }
+  make(tool, x, y, w, h) {
+    const base = { id: BPL.uid(), x, y, w, h, label: '' }, dropF = { type: 'drop', fd: '', chute: '', branch: '', code: '', cams: '', note: '' };
+    switch (tool) {
+      case 'drop': return [{ ...base, ...dropF }];
+      case 'droprow': return Array.from({ length: Math.max(1, Math.round(w)) }, (_, i) => ({ ...base, ...dropF, id: BPL.uid(), x: x + i, w: 1, h: Math.max(h, 3) }));
+      case 'cam': case 'dome': case 'ptz': case 'fisheye': { const m = tool === 'cam' ? 'bullet' : tool; return [{ ...base, type: 'cam', model: m, no: this.nextCamNo(), name: '', note: '', dir: 90, fov: MODEL[m].fov, range: MODEL[m].range, w: 1, h: 1 }]; }
+      case 'conveyor': return [{ ...base, type: 'conveyor', dir: h > w ? 'd' : 'r' }];
+      case 'slide': return [{ ...base, type: 'slide', label: 'สไลด์' }];
+      case 'wall': return [{ ...base, type: 'wall' }];
+      case 'dock': return [{ ...base, type: 'dock', hub: '', note: '' }];
+      case 'door': return [{ ...base, type: 'door', label: 'ประตู' }];
+      case 'pillar': return [{ ...base, type: 'pillar', label: 'เสา' }];
+      case 'zone': return [{ ...base, type: 'zone', pattern: 'none', label: 'โซนใหม่' }];
+      case 'room': return [{ ...base, type: 'zone', pattern: 'room', label: 'ห้องใหม่' }];
+      case 'hatch': return [{ ...base, type: 'zone', pattern: 'hatch', label: 'ห้ามเข้า' }];
+      case 'walk': return [{ ...base, type: 'zone', pattern: 'walk', label: 'ทางเดิน' }];
+      case 'text': return [{ ...base, type: 'text', label: 'ข้อความ', size: 12, rot: 0 }];
+      case 'pin': return [{ ...base, type: 'pin', label: this.nextPin(), note: '' }];
+      case 'barrow': return [{ ...base, type: 'barrow', double: false }];
+      case 'rect': return [{ ...base, type: 'shape', shape: 'rect', thick: 2 }];
+      case 'ellipse': return [{ ...base, type: 'shape', shape: 'ellipse', thick: 2 }];
+    }
+    return [];
+  }
+  makeLine(tool, p0, p1) {
+    const dxp = (p1.x - p0.x) * BPL.CW, dyp = (p1.y - p0.y) * BPL.CH, L = Math.hypot(dxp, dyp); if (L < 10) return null;
+    const w = L / BPL.CW, h = 0.6, mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
+    return { id: BPL.uid(), type: 'line', head: tool === 'arrow', x: mx - w / 2, y: my - h / 2, w, h, rot: Math.round(Math.atan2(dyp, dxp) * 180 / Math.PI), thick: 3, label: '' };
+  }
+  normCurve(e) {
+    const A = { x: e.x + e.ax, y: e.y + e.ay }, B = { x: e.x + e.bx, y: e.y + e.by }, Q = { x: e.x + e.qx, y: e.y + e.qy };
+    const mid = { x: 0.25 * A.x + 0.5 * Q.x + 0.25 * B.x, y: 0.25 * A.y + 0.5 * Q.y + 0.25 * B.y };
+    const xs = [A.x, B.x, mid.x], ys = [A.y, B.y, mid.y], x = Math.min(...xs), y = Math.min(...ys);
+    return { ...e, x, y, w: Math.max(0.5, Math.max(...xs) - x), h: Math.max(0.5, Math.max(...ys) - y), ax: A.x - x, ay: A.y - y, bx: B.x - x, by: B.y - y, qx: Q.x - x, qy: Q.y - y };
+  }
+  makeCurve(p0, p1) {
+    const dxp = (p1.x - p0.x) * BPL.CW, dyp = (p1.y - p0.y) * BPL.CH, L = Math.hypot(dxp, dyp); if (L < 14) return null;
+    const nx = -dyp / L, ny = dxp / L, k = L * 0.3, q = { x: (p0.x + p1.x) / 2 + nx * k / BPL.CW, y: (p0.y + p1.y) / 2 + ny * k / BPL.CH };
+    return this.normCurve({ id: BPL.uid(), type: 'curve', head: 'end', thick: 4, label: '', x: 0, y: 0, w: 1, h: 1, ax: p0.x, ay: p0.y, bx: p1.x, by: p1.y, qx: q.x, qy: q.y });
+  }
+  stepFor(ev, base) { return (this.state.snap !== !!ev.altKey) ? base : 1 / 16; }
+  xfDown(ev, hx, hy) {
+    ev.stopPropagation(); if (ev.button !== 0) return; this.pushHist();
+    const sel = this.els().filter(e => this.state.sel.includes(e.id));
+    if (sel.length === 1) { const e = sel[0]; this.setState({ drag: { kind: 'xform', id: e.id, hx, hy, o: { x: e.x, y: e.y, w: e.w, h: e.h, rot: e.rot || 0 } } }); }
+    else { const orig = {}; sel.forEach(e => orig[e.id] = { ...e }); this.setState({ drag: { kind: 'gxform', hx, hy, bb: BPL.bounds(sel), orig } }); }
+  }
+  cptDown(ev, which) { ev.stopPropagation(); this.pushHist(); this.setState({ drag: { kind: 'cpt', id: this.state.sel[0], which } }); }
+  add(list) { if (!list || !list.length) return; this.setEls([...this.els(), ...list]); this.setState({ sel: list.map(e => e.id), tab: 'props' }); }
+  pickTool(t) { const g = TOOLS[t].g; this.setState({ tool: t, last: { ...this.state.last, [g]: t }, fly: null }); }
+
+  elDown(ev, id) {
+    if (this.state.fly) this.setState({ fly: null });
+    if (this.state.tool !== 'select' || this.space || ev.button !== 0) return;
+    ev.stopPropagation();
+    let sel = this.state.sel;
+    if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { this.setState({ sel: sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id], tab: 'props' }); return; }
+    if (!sel.includes(id)) sel = [id];
+    const orig = {}; this.els().forEach(e => { if (sel.includes(e.id)) orig[e.id] = { x: e.x, y: e.y }; });
+    this.setState({ sel, tab: this.state.tab === 'layers' ? 'layers' : 'props', drag: { kind: 'move', p0: this.world(ev), orig, moved: false } });
+  }
+  canvasDown = ev => {
+    if (!this.state.ready || (ev.target.closest && ev.target.closest('[data-handle]'))) return;
+    if (this.state.fly) this.setState({ fly: null });
+    const t = this.state.tool, spec = TOOLS[t], p = this.world(ev);
+    if (ev.button === 1 || this.space || t === 'pan') { ev.preventDefault(); this.userMoved = true; this.setState({ drag: { kind: 'pan', c0: { x: ev.clientX, y: ev.clientY }, pan0: this.state.pan } }); return; }
+    if (ev.button !== 0) return;
+    if (t === 'select') { const base = ev.shiftKey ? this.state.sel : []; this.setState({ sel: base, drag: { kind: 'marq', p0: p, p1: p, base } }); return; }
+    if (spec.mode === 'point') {
+      const isCam = spec.g === 'cam', x = isCam || t === 'pin' ? Math.round(p.x * 2) / 2 - 0.5 : Math.floor(p.x), y = isCam || t === 'pin' ? Math.round(p.y * 2) / 2 - 0.5 : Math.floor(p.y);
+      this.add(this.make(t, x, y, 1, 1)); return;
+    }
+    if (spec.mode === 'line') { const s = v => Math.round(v * 2) / 2; const q = { x: s(p.x), y: s(p.y) }; this.setState({ drag: { kind: 'dline', p0: q, p1: q } }); return; }
+    const c = { x: Math.floor(p.x), y: Math.floor(p.y) }; this.setState({ drag: { kind: 'draw', c0: c, c1: c } });
+  };
+  resizeDown = ev => { ev.stopPropagation(); const e = this.byId(this.state.sel[0]); this.pushHist(); this.setState({ drag: { kind: 'resize', id: e.id, p0: this.world(ev), o: { w: e.w, h: e.h } } }); };
+  tRotDown = ev => { ev.stopPropagation(); this.pushHist(); this.setState({ drag: { kind: 'trot', id: this.state.sel[0] } }); };
+  rotateDown = ev => { ev.stopPropagation(); this.pushHist(); this.setState({ drag: { kind: 'rotate', id: this.state.sel[0] } }); };
+
+  onMove(ev) {
+    if (!this.cv || !this.state.ready) return;
+    const d = this.state.drag, p = this.world(ev), cur = { x: Math.floor(p.x), y: Math.floor(p.y) };
+    if (!this.state.cur || cur.x !== this.state.cur.x || cur.y !== this.state.cur.y) this.setState({ cur });
+    if (!d) return;
+    if (d.kind === 'pan') { this.setState({ pan: { x: d.pan0.x + ev.clientX - d.c0.x, y: d.pan0.y + ev.clientY - d.c0.y } }); return; }
+    if (d.kind === 'marq') { this.setState({ drag: { ...d, p1: p } }); return; }
+    if (d.kind === 'draw') { this.setState({ drag: { ...d, c1: cur } }); return; }
+    if (d.kind === 'dline') { const st = ev.altKey ? 0.125 : 0.5; let q = { x: Math.round(p.x / st) * st, y: Math.round(p.y / st) * st }; if (ev.shiftKey) { if (Math.abs(q.x - d.p0.x) * BPL.CW > Math.abs(q.y - d.p0.y) * BPL.CH) q.y = d.p0.y; else q.x = d.p0.x; } this.setState({ drag: { ...d, p1: q } }); return; }
+    if (d.kind === 'move') {
+      const ids = Object.keys(d.orig), fine = ids.every(id => { const t = (this.byId(id) || {}).type; return t === 'cam' || t === 'pin' || t === 'line' || t === 'curve'; });
+      const step = this.stepFor(ev, fine ? 0.5 : 1);
+      const dx = Math.round((p.x - d.p0.x) / step) * step, dy = Math.round((p.y - d.p0.y) / step) * step;
+      if (!d.moved && !dx && !dy) return;
+      if (!d.moved) { this.pushHist(); this.setState({ drag: { ...d, moved: true } }); }
+      this.setEls(this.els().map(e => d.orig[e.id] ? { ...e, x: d.orig[e.id].x + dx, y: d.orig[e.id].y + dy } : e), { hist: false });
+      return;
+    }
+    if (d.kind === 'resize') {
+      const step = ev.altKey ? 0.25 : 0.5;
+      const w = Math.max(0.25, d.o.w + Math.round((p.x - d.p0.x) / step) * step), h = Math.max(0.25, d.o.h + Math.round((p.y - d.p0.y) / step) * step);
+      this.setEls(this.els().map(e => e.id === d.id ? { ...e, w, h } : e), { hist: false }); return;
+    }
+    if (d.kind === 'xform') {
+      const o = d.o, CWp = BPL.CW, CHp = BPL.CH, th = o.rot * Math.PI / 180, cos = Math.cos(th), sin = Math.sin(th);
+      const W = o.w * CWp, H = o.h * CHp, cx = (o.x + o.w / 2) * CWp, cy = (o.y + o.h / 2) * CHp;
+      const px = p.x * CWp - cx, py = p.y * CHp - cy, lx = px * cos + py * sin, ly = -px * sin + py * cos;
+      const st = this.stepFor(ev, 0.25), minW = CWp * 0.25, minH = CHp * 0.25;
+      let x0 = -W / 2, x1 = W / 2, y0 = -H / 2, y1 = H / 2, nw = W, nh = H;
+      if (d.hx === 1) nw = Math.max(minW, lx - x0); if (d.hx === -1) nw = Math.max(minW, x1 - lx);
+      if (d.hy === 1) nh = Math.max(minH, ly - y0); if (d.hy === -1) nh = Math.max(minH, y1 - ly);
+      if (d.hx) nw = Math.max(minW, Math.round(nw / (st * CWp)) * st * CWp);
+      if (d.hy) nh = Math.max(minH, Math.round(nh / (st * CHp)) * st * CHp);
+      if (ev.shiftKey) { const r = W / H; if (d.hx && d.hy) { if (nw / nh > r) nh = nw / r; else nw = nh * r; } else if (d.hx) nh = nw / r; else if (d.hy) nw = nh * r; }
+      if (d.hx === 1) x1 = x0 + nw; else if (d.hx === -1) x0 = x1 - nw; else { x0 = -nw / 2; x1 = nw / 2; }
+      if (d.hy === 1) y1 = y0 + nh; else if (d.hy === -1) y0 = y1 - nh; else { y0 = -nh / 2; y1 = nh / 2; }
+      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2, ncx = cx + mx * cos - my * sin, ncy = cy + mx * sin + my * cos;
+      const w = nw / CWp, hh = nh / CHp, x = ncx / CWp - w / 2, y = ncy / CHp - hh / 2;
+      this.setEls(this.els().map(e => e.id === d.id ? { ...e, x, y, w, h: hh } : e), { hist: false }); return;
+    }
+    if (d.kind === 'gxform') {
+      const b = d.bb, st = this.stepFor(ev, 0.25), sn = v => Math.round(v / st) * st;
+      let X0 = b.x, X1 = b.x + b.w, Y0 = b.y, Y1 = b.y + b.h;
+      if (d.hx === 1) X1 = Math.max(X0 + 0.5, sn(p.x)); if (d.hx === -1) X0 = Math.min(X1 - 0.5, sn(p.x));
+      if (d.hy === 1) Y1 = Math.max(Y0 + 0.5, sn(p.y)); if (d.hy === -1) Y0 = Math.min(Y1 - 0.5, sn(p.y));
+      let sx = (X1 - X0) / b.w, sy = (Y1 - Y0) / b.h;
+      if (ev.shiftKey) { const k = d.hx && d.hy ? Math.max(sx, sy) : d.hx ? sx : sy; sx = sy = k; if (d.hx === -1) X0 = X1 - b.w * k; else X1 = X0 + b.w * k; if (d.hy === -1) Y0 = Y1 - b.h * k; else Y1 = Y0 + b.h * k; }
+      this.setEls(this.els().map(e => {
+        const o = d.orig[e.id]; if (!o) return e;
+        if (o.type === 'cam' || o.type === 'pin') { const ccx = X0 + (o.x + o.w / 2 - b.x) * sx, ccy = Y0 + (o.y + o.h / 2 - b.y) * sy; return { ...e, x: ccx - o.w / 2, y: ccy - o.h / 2 }; }
+        const n = { ...e, x: X0 + (o.x - b.x) * sx, y: Y0 + (o.y - b.y) * sy, w: Math.max(0.25, o.w * sx), h: Math.max(0.25, o.h * sy) };
+        if (o.type === 'curve') ['a', 'b', 'q'].forEach(k => { n[k + 'x'] = o[k + 'x'] * sx; n[k + 'y'] = o[k + 'y'] * sy; });
+        return n;
+      }), { hist: false }); return;
+    }
+    if (d.kind === 'cpt') {
+      const st = ev.altKey ? 0.05 : 0.25, q = { x: Math.round(p.x / st) * st, y: Math.round(p.y / st) * st };
+      this.setEls(this.els().map(x => x.id === d.id ? { ...x, [d.which + 'x']: q.x - x.x, [d.which + 'y']: q.y - x.y } : x), { hist: false }); return;
+    }
+    if (d.kind === 'trot') {
+      const e = this.byId(d.id), [cx, cy] = BPL.center(e);
+      let a = Math.atan2(p.y * BPL.CH - cy, p.x * BPL.CW - cx) * 180 / Math.PI + 90; if (ev.shiftKey) a = Math.round(a / 15) * 15; a = Math.round(((a + 540) % 360) - 180);
+      this.setEls(this.els().map(x => x.id === d.id ? { ...x, rot: a } : x), { hist: false }); return;
+    }
+    if (d.kind === 'rotate') {
+      const e = this.byId(d.id), [cx, cy] = BPL.center(e), px = p.x * BPL.CW, py = p.y * BPL.CH;
+      let a = Math.atan2(py - cy, px - cx) * 180 / Math.PI; if (ev.shiftKey) a = Math.round(a / 15) * 15; a = Math.round((a + 360) % 360);
+      const range = Math.max(20, Math.round(Math.hypot(px - cx, py - cy)));
+      this.setEls(this.els().map(x => x.id === d.id ? { ...x, dir: a, range } : x), { hist: false });
+    }
+  }
+  onUp() {
+    const d = this.state.drag; if (!d) return;
+    if (d.kind === 'draw') {
+      const t = this.state.tool; let x = Math.min(d.c0.x, d.c1.x), y = Math.min(d.c0.y, d.c1.y), w = Math.abs(d.c1.x - d.c0.x) + 1, h = Math.abs(d.c1.y - d.c0.y) + 1;
+      if (w === 1 && h === 1 && TOOLS[t].def) [w, h] = TOOLS[t].def;
+      if (t === 'wall' && (w > 1 || h > 1)) { if (w >= h) h = 0.5; else w = 0.5; }
+      this.setState({ drag: null }); this.add(this.make(t, x, y, w, h)); return;
+    }
+    if (d.kind === 'dline') { this.setState({ drag: null }); const l = this.state.tool === 'curve' ? this.makeCurve(d.p0, d.p1) : this.makeLine(this.state.tool, d.p0, d.p1); if (l) { this.add([l]); this.setState({ tool: 'select' }); } return; }
+    if (d.kind === 'xform') {
+      const o = d.o, CWp = BPL.CW, CHp = BPL.CH, th = o.rot * Math.PI / 180, cos = Math.cos(th), sin = Math.sin(th);
+      const W = o.w * CWp, H = o.h * CHp, cx = (o.x + o.w / 2) * CWp, cy = (o.y + o.h / 2) * CHp;
+      const px = p.x * CWp - cx, py = p.y * CHp - cy, lx = px * cos + py * sin, ly = -px * sin + py * cos;
+      const st = this.stepFor(ev, 0.25), minW = CWp * 0.25, minH = CHp * 0.25;
+      let x0 = -W / 2, x1 = W / 2, y0 = -H / 2, y1 = H / 2, nw = W, nh = H;
+      if (d.hx === 1) nw = Math.max(minW, lx - x0); if (d.hx === -1) nw = Math.max(minW, x1 - lx);
+      if (d.hy === 1) nh = Math.max(minH, ly - y0); if (d.hy === -1) nh = Math.max(minH, y1 - ly);
+      if (d.hx) nw = Math.max(minW, Math.round(nw / (st * CWp)) * st * CWp);
+      if (d.hy) nh = Math.max(minH, Math.round(nh / (st * CHp)) * st * CHp);
+      if (ev.shiftKey) { const r = W / H; if (d.hx && d.hy) { if (nw / nh > r) nh = nw / r; else nw = nh * r; } else if (d.hx) nh = nw / r; else if (d.hy) nw = nh * r; }
+      if (d.hx === 1) x1 = x0 + nw; else if (d.hx === -1) x0 = x1 - nw; else { x0 = -nw / 2; x1 = nw / 2; }
+      if (d.hy === 1) y1 = y0 + nh; else if (d.hy === -1) y0 = y1 - nh; else { y0 = -nh / 2; y1 = nh / 2; }
+      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2, ncx = cx + mx * cos - my * sin, ncy = cy + mx * sin + my * cos;
+      const w = nw / CWp, hh = nh / CHp, x = ncx / CWp - w / 2, y = ncy / CHp - hh / 2;
+      this.setEls(this.els().map(e => e.id === d.id ? { ...e, x, y, w, h: hh } : e), { hist: false }); return;
+    }
+    if (d.kind === 'gxform') {
+      const b = d.bb, st = this.stepFor(ev, 0.25), sn = v => Math.round(v / st) * st;
+      let X0 = b.x, X1 = b.x + b.w, Y0 = b.y, Y1 = b.y + b.h;
+      if (d.hx === 1) X1 = Math.max(X0 + 0.5, sn(p.x)); if (d.hx === -1) X0 = Math.min(X1 - 0.5, sn(p.x));
+      if (d.hy === 1) Y1 = Math.max(Y0 + 0.5, sn(p.y)); if (d.hy === -1) Y0 = Math.min(Y1 - 0.5, sn(p.y));
+      let sx = (X1 - X0) / b.w, sy = (Y1 - Y0) / b.h;
+      if (ev.shiftKey) { const k = d.hx && d.hy ? Math.max(sx, sy) : d.hx ? sx : sy; sx = sy = k; if (d.hx === -1) X0 = X1 - b.w * k; else X1 = X0 + b.w * k; if (d.hy === -1) Y0 = Y1 - b.h * k; else Y1 = Y0 + b.h * k; }
+      this.setEls(this.els().map(e => {
+        const o = d.orig[e.id]; if (!o) return e;
+        if (o.type === 'cam' || o.type === 'pin') { const ccx = X0 + (o.x + o.w / 2 - b.x) * sx, ccy = Y0 + (o.y + o.h / 2 - b.y) * sy; return { ...e, x: ccx - o.w / 2, y: ccy - o.h / 2 }; }
+        const n = { ...e, x: X0 + (o.x - b.x) * sx, y: Y0 + (o.y - b.y) * sy, w: Math.max(0.25, o.w * sx), h: Math.max(0.25, o.h * sy) };
+        if (o.type === 'curve') ['a', 'b', 'q'].forEach(k => { n[k + 'x'] = o[k + 'x'] * sx; n[k + 'y'] = o[k + 'y'] * sy; });
+        return n;
+      }), { hist: false }); return;
+    }
+    if (d.kind === 'cpt') { this.setState({ drag: null }); this.setEls(this.els().map(x => x.id === d.id ? this.normCurve(x) : x), { hist: false }); return; }
+    if (d.kind === 'marq') {
+      const x0 = Math.min(d.p0.x, d.p1.x), x1 = Math.max(d.p0.x, d.p1.x), y0 = Math.min(d.p0.y, d.p1.y), y1 = Math.max(d.p0.y, d.p1.y);
+      if (x1 - x0 < 0.1 && y1 - y0 < 0.1) { this.setState({ drag: null }); return; }
+      const hit = this.els().filter(e => e.x < x1 && e.x + e.w > x0 && e.y < y1 && e.y + e.h > y0).map(e => e.id);
+      this.setState({ sel: [...new Set([...d.base, ...hit])], drag: null }); return;
+    }
+    this.setState({ drag: null });
+  }
+
+  onKey(e) {
+    const tg = e.target, typing = tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.isContentEditable);
+    const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === 's') { e.preventDefault(); this.saveNow(); return; }
+    if (typing) { if (e.key === 'Escape' || (e.key === 'Enter' && tg.tagName === 'INPUT')) tg.blur(); return; }
+    if (e.code === 'Space') { e.preventDefault(); if (!this.space) { this.space = true; this.forceUpdate(); } return; }
+    if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return; }
+    if (mod && k === 'y') { e.preventDefault(); this.redo(); return; }
+    if (mod && k === 'd') { e.preventDefault(); this.dup(); return; }
+    if (mod && k === 'c') { this.clip = this.els().filter(x => this.state.sel.includes(x.id)).map(x => ({ ...x })); if (this.clip.length) this.say('คัดลอก ' + this.clip.length + ' ชิ้น'); return; }
+    if (mod && k === 'a') { e.preventDefault(); this.setState({ sel: this.els().map(x => x.id) }); return; }
+    if (mod && k === '0') { e.preventDefault(); this.fit(); return; }
+    if (mod) return;
+    if (k === 'delete' || k === 'backspace') { e.preventDefault(); this.del(); return; }
+    if (k === 'escape') { this.setState({ sel: [], tool: 'select', fly: null }); return; }
+    if (k === 'enter' && this.state.sel.length === 1) { e.preventDefault(); this.focusPrimary(); return; }
+    if (k.startsWith('arrow') && this.state.sel.length) {
+      e.preventDefault(); const s = e.shiftKey ? 5 : e.altKey ? 0.25 : 1, dx = k === 'arrowleft' ? -s : k === 'arrowright' ? s : 0, dy = k === 'arrowup' ? -s : k === 'arrowdown' ? s : 0;
+      this.setEls(this.els().map(x => this.state.sel.includes(x.id) ? { ...x, x: x.x + dx, y: x.y + dy } : x), { key: 'nudge' }); return;
+    }
+    const t = Object.keys(TOOLS).find(n => TOOLS[n].key && TOOLS[n].key.toLowerCase() === k);
+    if (t) this.pickTool(t);
+    if (k === '=' || k === '+') this.zoomBy(1.2); if (k === '-') this.zoomBy(1 / 1.2);
+  }
+  focusPrimary() { this.setState({ tab: 'props' }, () => setTimeout(() => { const i = document.querySelector('input[data-primary]'); if (i) { i.focus(); i.select(); } }, 30)); }
+  onPaste(e) {
+    const tg = e.target; if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
+    const items = [...(e.clipboardData ? e.clipboardData.items : [])], im = items.find(i => i.type.startsWith('image/'));
+    const one = this.state.sel.length === 1 ? this.byId(this.state.sel[0]) : null;
+    if (im) { e.preventDefault(); if (one && one.type === 'cam') this.setImg(one.no, im.getAsFile()); else this.say('เลือกกล้องก่อน แล้วค่อยกด Ctrl+V วางภาพ'); return; }
+    if (this.clip && this.clip.length) {
+      e.preventDefault(); const taken = [];
+      const copies = this.clip.map(x => { const c = { ...x, id: BPL.uid(), x: x.x + 1, y: x.y + 1 }; if (c.type === 'cam') { c.no = this.nextCamNo(taken); taken.push(c.no); } return c; });
+      this.clip = copies.map(c => ({ ...c })); this.add(copies);
+    }
+  }
+  async setImg(no, file) {
+    if (!no) { this.say('กล้องนี้ยังไม่มีเลข ใส่เลขกล้องก่อน'); return; }
+    try { const src = await BPL.compress(file), v = { src, t: Date.now() }; await BPL.img.set(no, v); this.setState({ imgs: { ...this.state.imgs, [no]: v }, dirty: true }); this.say('บันทึกภาพกล้อง ' + no + ' แล้ว'); }
+    catch (err) { this.say('อ่านไฟล์ภาพไม่ได้'); }
+  }
+  async bulk(files) {
+    const cams = this.els().filter(e => e.type === 'cam'); let ok = 0, miss = [];
+    for (const f of files) { const m = f.name.match(/\d{1,4}/); const c = m && (cams.find(x => x.no === m[0]) || cams.find(x => parseInt(x.no, 10) === parseInt(m[0], 10))); if (c) { await this.setImg(c.no, f); ok++; } else miss.push(f.name); }
+    this.say('จับคู่ได้ ' + ok + ' ภาพ' + (miss.length ? ' · ไม่พบกล้อง: ' + miss.slice(0, 4).join(', ') : ''));
+  }
+  onDropFile(e) {
+    e.preventDefault(); const files = [...(e.dataTransfer ? e.dataTransfer.files : [])].filter(f => f.type.startsWith('image/')); if (!files.length) return;
+    if (files.length > 1) { this.bulk(files); return; }
+    const p = this.world(e), px = p.x * BPL.CW, py = p.y * BPL.CH;
+    let best = null, bd = 40; this.els().forEach(c => { if (c.type !== 'cam') return; const [cx, cy] = BPL.center(c), d = Math.hypot(cx - px, cy - py); if (d < bd) { bd = d; best = c; } });
+    if (best) { this.setState({ sel: [best.id], tab: 'props' }); this.setImg(best.no, files[0]); } else this.bulk(files);
+  }
+
+  del = () => { const s = this.state.sel; if (!s.length) return; this.setEls(this.els().filter(e => !s.includes(e.id))); this.setState({ sel: [] }); };
+  dup = () => {
+    const s = this.state.sel; if (!s.length) return; const taken = [], pins = [];
+    const copies = this.els().filter(e => s.includes(e.id)).map(e => { const c = { ...e, id: BPL.uid(), x: e.x + 1, y: e.y + 1 }; if (c.type === 'cam') { c.no = this.nextCamNo(taken); taken.push(c.no); } if (c.type === 'pin') { c.label = this.nextPin(pins); pins.push(c.label); } return c; });
+    this.add(copies);
+  };
+  runArray = () => {
+    const { n, dx, dy } = this.state.arr, src = this.els().filter(e => this.state.sel.includes(e.id)); if (!src.length || n < 1) return;
+    const out = [], taken = [], pins = [];
+    for (let k = 1; k <= n; k++) src.forEach(e => { const c = { ...e, id: BPL.uid(), x: e.x + dx * k, y: e.y + dy * k }; if (c.type === 'drop' && c.fd) c.fd = this.incr(c.fd, k); if (c.type === 'cam') { c.no = this.nextCamNo(taken); taken.push(c.no); } if (c.type === 'pin') { c.label = this.nextPin(pins); pins.push(c.label); } out.push(c); });
+    this.add(out); this.say('สร้าง ' + out.length + ' ชิ้น');
+  };
+  align(kind) {
+    const s = this.els().filter(e => this.state.sel.includes(e.id)); if (s.length < 2) return; let m = {};
+    if (kind === 'left') { const v = Math.min(...s.map(e => e.x)); s.forEach(e => m[e.id] = { x: v }); }
+    if (kind === 'top') { const v = Math.min(...s.map(e => e.y)); s.forEach(e => m[e.id] = { y: v }); }
+    if (kind === 'h' || kind === 'v') { const key = kind === 'h' ? 'x' : 'y', o = s.slice().sort((a, b) => a[key] - b[key]), a = o[0][key], b = o[o.length - 1][key]; o.forEach((e, i) => m[e.id] = { [key]: Math.round((a + (b - a) * i / (o.length - 1)) * 4) / 4 }); }
+    this.setEls(this.els().map(e => m[e.id] ? { ...e, ...m[e.id] } : e));
+  }
+  growPaper(n) {
+    const l = this.state.layout; this.pushHist();
+    this.setLayout({ ...l, elements: l.elements.map(e => ({ ...e, x: e.x + n, y: e.y + n })), cols: l.cols + n * 2, rows: l.rows + n * 2, ox: (l.ox || 0) + n, oy: (l.oy || 0) + n, updated: Date.now() });
+    this.say('ขยายแผ่นงานรอบด้าน +' + n + ' ช่อง'); setTimeout(() => this.fitPaper(), 30);
+  }
+  trimPaper() {
+    const l = this.state.layout, b = BPL.bounds(l.elements), m = 10, dx = Math.floor(b.x) - m, dy = Math.floor(b.y) - m; this.pushHist();
+    this.setLayout({ ...l, elements: l.elements.map(e => ({ ...e, x: e.x - dx, y: e.y - dy })), cols: Math.ceil(b.w) + m * 2, rows: Math.ceil(b.h) + m * 2, ox: (l.ox || 0) - dx, oy: (l.oy || 0) - dy, updated: Date.now() });
+    this.say('ตัดขอบเหลือเว้นรอบงาน ' + m + ' ช่อง'); setTimeout(() => this.fitPaper(), 30);
+  }
+  runImport = () => {
+    const { text, ox, oy, mode } = this.state.imp; if (!text.trim()) { this.say('ยังไม่ได้วางข้อมูล'); return; }
+    const o = this.off(), out = BPL.parseSheet(text, ox === '' ? o.ox : (parseInt(ox, 10) || 0), oy === '' ? o.oy : (parseInt(oy, 10) || 0));
+    this.setEls(mode === 'replace' ? out : [...this.els(), ...out]); this.setState({ sel: out.map(e => e.id), tab: 'props' });
+    this.say('แปลงได้ ' + out.length + ' ชิ้น'); setTimeout(() => this.fit(), 30);
+  };
+
+  styleVals(one, segBtn) {
+    const FILLS = [['', 'ค่าเริ่มต้น'], ['#ffffff', 'ขาว'], ['#d7d3d3', 'เทาอ่อน'], ['#7d7979', 'เทา'], ['#1d1d1d', 'ดำ'], ['#ffd000', 'เหลือง'], ['#fff1a6', 'เหลืองอ่อน'], ['#f4a259', 'ส้ม'], ['#ec3013', 'แดง'], ['#7fc8a9', 'เขียว'], ['#8fb8e8', 'ฟ้า'], ['#b39ddb', 'ม่วง']];
+    const INKS = [['', 'ค่าเริ่มต้น'], ['#111111', 'ดำ'], ['#ffffff', 'ขาว'], ['#ffd000', 'เหลือง'], ['#ec3013', 'แดง'], ['#605d5d', 'เทา'], ['#1f5fa8', 'น้ำเงิน'], ['#2d7a4f', 'เขียว']];
+    const none = { tdirOpts: [], levelOpts: [], levelInfo: '', levelUp: () => {}, levelDown: () => {}, opVal: 100, onOp: () => {}, fillSw: [], inkSw: [], fillHex: '#ffffff', inkHex: '#111111', onFillPick: () => {}, onInkPick: () => {}, toggleBold: () => {}, boldBtn: {}, selIsText: false, toggleFit: () => {}, fitBtn: {}, selCanRot: false, rotVal: 0, onRot: () => {}, rotReset: () => {} };
+    const ids = this.state.sel; if (!ids.length) return none;
+    const ref = one || this.byId(ids[0]); if (!ref) return none;
+    const set = patch => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, ...patch } : e));
+    const sw = (list, key) => list.map(([v, t]) => ({ t, onClick: () => set({ [key]: v }), s: { width: 24, height: 24, padding: 0, cursor: 'pointer', border: (ref[key] || '') === v ? '2px solid #ffd000' : '1px solid #555', outline: (ref[key] || '') === v ? '1px solid #111' : 'none', outlineOffset: -3, background: v || 'linear-gradient(135deg, #fff 44%, #ec3013 44%, #ec3013 56%, #fff 56%)' } }));
+    const hex = (v, d) => /^#[0-9a-f]{6}$/i.test(v || '') ? v : d;
+    const tog = on => ({ height: 32, padding: '0 12px', border: '1px solid ' + (on ? '#ffd000' : '#444'), background: on ? '#ffd000' : 'transparent', color: on ? '#111' : '#f2f0e8', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' });
+    return {
+      fillSw: sw(FILLS, 'fill'), inkSw: sw(INKS, 'ink'), fillHex: hex(ref.fill, '#ffffff'), inkHex: hex(ref.ink, '#111111'),
+      onFillPick: ev => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, fill: ev.target.value } : e), { key: 'fill' + ref.id }),
+      onInkPick: ev => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, ink: ev.target.value } : e), { key: 'ink' + ref.id }),
+      toggleBold: () => set({ bold: !ref.bold }), boldBtn: tog(!!ref.bold),
+      selIsText: !!one && one.type === 'text', toggleFit: () => set({ fit: ref.fit === false }), fitBtn: tog(ref.fit !== false),
+      tdirOpts: [['h', 'แนวนอน'], ['v', 'แนวตั้ง']].map(([v, t]) => ({ t, s: segBtn((ref.tdir || 'h') === v), onClick: () => set({ tdir: v }) })),
+      levelOpts: [1, 2, 3, 4, 5].map(z => ({ t: String(z), title: z === 5 ? 'บนสุด' : z === 1 ? 'ล่างสุด' : 'ระดับ ' + z, s: segBtn(BPL.zOf(ref) === z), onClick: () => set({ z }) })),
+      levelInfo: 'ระดับ ' + BPL.zOf(ref) + (ids.length > 1 ? ' (ชิ้นแรก)' : ''),
+      levelUp: () => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, z: Math.min(5, BPL.zOf(e) + 1) } : e)),
+      levelDown: () => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, z: Math.max(1, BPL.zOf(e) - 1) } : e)),
+      opVal: ref.op == null ? 100 : +ref.op, onOp: ev => this.setEls(this.els().map(e => ids.includes(e.id) ? { ...e, op: +ev.target.value } : e), { key: 'op' + ref.id }),
+      selCanRot: !!one && !['cam', 'curve'].includes(one.type), rotVal: (one && one.rot) || 0,
+      onRot: ev => one && this.update(one.id, { rot: +ev.target.value }, 'rot' + one.id), rotReset: () => one && this.update(one.id, { rot: 0 })
+    };
+  }
+
+  renderVals() {
+    const s = this.state, ready = !!(s.ready && window.BPL), CW = ready ? BPL.CW : 64, CH = ready ? BPL.CH : 22;
+    const els = this.els(), cams = els.filter(e => e.type === 'cam'), selSet = new Set(s.sel);
+    const one = s.sel.length === 1 ? this.byId(s.sel[0]) : null;
+    const cols = (s.layout && s.layout.cols) || 180, rows = (s.layout && s.layout.rows) || 150, { ox, oy } = this.off();
+    const segBtn = on => ({ height: 32, border: 0, borderRight: '1px solid #333', background: on ? '#ffd000' : 'transparent', color: on ? '#111' : '#cfcfcf', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: '0 6px' });
+    const toggle = on => ({ flex: 'none', whiteSpace: 'nowrap', height: 34, padding: '0 10px', border: '1px solid ' + (on ? '#ffd000' : '#333'), background: on ? '#2a2408' : '#161616', color: on ? '#ffd000' : '#cfcfcf', fontWeight: 700, fontSize: 12, cursor: 'pointer' });
+    const curTool = TOOLS[s.tool], curG = curTool.g;
+
+    const groups = GROUPS.map(([g, label], i) => {
+      const act = curG === g, t = act ? s.tool : s.last[g];
+      return { label, icon: TOOLS[t].icon, title: label + ' · ' + TOOLS[t].name, onClick: () => { this.setState({ tool: t, fly: s.fly === g ? null : g }); }, s: { position: 'relative', height: 60, margin: '0 6px', border: 0, borderLeft: act ? '3px solid #ffd000' : '3px solid transparent', background: act ? '#1c1c1c' : (s.fly === g ? '#1a1a1a' : 'transparent'), color: act ? '#ffd000' : '#cfcfcf', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', padding: 0 } };
+    });
+    const flyIdx = GROUPS.findIndex(g => g[0] === s.fly);
+    const flyItems = s.fly ? Object.keys(TOOLS).filter(t => TOOLS[t].g === s.fly).map(t => ({ name: TOOLS[t].name, icon: TOOLS[t].icon, key: TOOLS[t].key || '', onClick: () => this.pickTool(t), s: { width: '100%', height: 42, display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px', border: 0, background: s.tool === t ? '#262626' : 'transparent', color: s.tool === t ? '#ffd000' : '#f2f0e8', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderLeft: s.tool === t ? '3px solid #ffd000' : '3px solid transparent' } })) : [];
+    const flyStyle = { position: 'absolute', left: 74, top: 6 + Math.max(0, flyIdx) * 62, width: 250, background: '#181818', border: '1px solid #333', boxShadow: '0 16px 40px rgba(0,0,0,.6)', zIndex: 40, paddingBottom: 4 };
+
+    let items = [], cones = [];
+    if (ready) {
+      items = BPL.sorted(els).map(e => { const it = BPL.view(e, { imgs: s.imgs, sel: selSet, v2: true }); it.box.cursor = s.tool === 'select' && !this.space ? (e.type === 'cam' ? 'pointer' : 'move') : 'crosshair'; it.down = ev => this.elDown(ev, e.id); it.dbl = () => { this.setState({ sel: [e.id] }); this.focusPrimary(); }; if (s.focusZ && BPL.zOf(e) !== s.focusZ) { it.box.opacity = (it.box.opacity ?? 1) * 0.15; it.box.pointerEvents = 'none'; } return it; });
+      const strong = { fill: 'rgba(255,200,0,.30)', stroke: '#c99700', strokeWidth: 1.5 }, soft = { fill: 'rgba(255,200,0,.10)', stroke: 'rgba(190,140,0,.45)', strokeWidth: 1 };
+      if (s.showCones) cones = cams.filter(c => !s.focusZ || BPL.zOf(c) === s.focusZ).map(c => ({ d: BPL.cone(c), s: selSet.has(c.id) ? strong : soft }));
+      else if (one && one.type === 'cam') cones = [{ d: BPL.cone(one), s: strong }];
+    }
+    const worldStyle = { position: 'absolute', left: 0, top: 0, width: cols * CW, height: rows * CH, transformOrigin: '0 0', transform: `translate(${s.pan.x}px,${s.pan.y}px) scale(${s.zoom})`, background: '#fff', boxShadow: '0 0 0 1px #000, 0 24px 70px rgba(0,0,0,.7)' };
+    if (s.showGrid) Object.assign(worldStyle, { backgroundImage: `linear-gradient(to right, #ececec 1px, transparent 1px), linear-gradient(to bottom, #ececec 1px, transparent 1px)`, backgroundSize: `${CW}px ${CH}px` });
+    const panning = s.tool === 'pan' || this.space;
+    const canvasStyle = { gridRow: 2, position: 'relative', overflow: 'hidden', background: '#0e0e0e', cursor: panning ? (s.drag && s.drag.kind === 'pan' ? 'grabbing' : 'grab') : s.tool === 'select' ? 'default' : 'crosshair', touchAction: 'none', userSelect: 'none' };
+    const showRulers = !!(ready && s.showGrid && s.zoom > 0.28);
+    const head = { position: 'absolute', fontSize: 10, fontWeight: 700, color: '#8a8a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' };
+    const colHeads = showRulers ? Array.from({ length: cols }, (_, i) => ({ t: i - ox >= 0 ? BPL.colName(i - ox) : '', s: { ...head, left: i * CW, top: -CH, width: CW, height: CH } })) : [];
+    const rowHeads = showRulers ? Array.from({ length: rows }, (_, i) => ({ t: i - oy >= 0 ? String(i - oy + 1) : '', s: { ...head, left: -40, top: i * CH, width: 36, height: CH, justifyContent: 'flex-end' } })) : [];
+
+    let hasMarq = false, marqStyle = {}, hasLinePrev = false, linePrev = {};
+    if (s.drag && s.drag.kind === 'marq') { const d = s.drag; hasMarq = true; marqStyle = { position: 'absolute', left: Math.min(d.p0.x, d.p1.x) * CW, top: Math.min(d.p0.y, d.p1.y) * CH, width: Math.abs(d.p1.x - d.p0.x) * CW, height: Math.abs(d.p1.y - d.p0.y) * CH, border: '1.5px dashed #111', background: 'rgba(255,208,0,.12)', zIndex: 8, pointerEvents: 'none' }; }
+    if (s.drag && s.drag.kind === 'draw') { const d = s.drag; hasMarq = true; marqStyle = { position: 'absolute', left: Math.min(d.c0.x, d.c1.x) * CW, top: Math.min(d.c0.y, d.c1.y) * CH, width: (Math.abs(d.c1.x - d.c0.x) + 1) * CW, height: (Math.abs(d.c1.y - d.c0.y) + 1) * CH, border: '2px solid #111', background: 'rgba(255,208,0,.28)', zIndex: 8, pointerEvents: 'none' }; }
+    if (s.drag && s.drag.kind === 'dline') { const d = s.drag, dx = (d.p1.x - d.p0.x) * CW, dy = (d.p1.y - d.p0.y) * CH; hasLinePrev = true; linePrev = { position: 'absolute', left: d.p0.x * CW, top: d.p0.y * CH - 1.5, width: Math.hypot(dx, dy), height: 3, background: '#111', transformOrigin: '0 50%', transform: `rotate(${Math.atan2(dy, dx)}rad)`, zIndex: 8, pointerEvents: 'none', boxShadow: '0 0 0 2px rgba(255,208,0,.6)' }; }
+    const hasResize = !!(one && !['cam', 'pin', 'curve'].includes(one.type) && !one.rot && s.tool === 'select');
+    const resizeStyle = hasResize ? { position: 'absolute', left: (one.x + one.w) * CW - 7, top: (one.y + one.h) * CH - 7, width: 14, height: 14, background: '#ffd000', border: '2px solid #111', cursor: 'nwse-resize', zIndex: 9 } : {};
+    const hasTRot = !!(one && !['cam', 'pin', 'curve'].includes(one.type) && s.tool === 'select');
+    let tRotStyle = {}, tRotStem = {};
+    if (hasTRot) { const [cx, cy] = BPL.center(one), r = (one.rot || 0) * Math.PI / 180, hh = one.h * CH / 2, d = hh + 26, hx = cx + d * Math.sin(r), hy = cy - d * Math.cos(r);
+      tRotStyle = { position: 'absolute', left: hx - 8, top: hy - 8, width: 16, height: 16, borderRadius: '50%', background: '#fff', border: '2px solid #111', boxShadow: '0 0 0 2px #ffd000', cursor: 'grab', zIndex: 9 };
+      tRotStem = { position: 'absolute', left: cx - 1, top: cy - d + 8, width: 2, height: d - 8 - hh, background: '#111', transformOrigin: `1px ${d - 8}px`, transform: `rotate(${one.rot || 0}deg)`, zIndex: 8, pointerEvents: 'none' }; }
+    let hasXf = false, xfFrame = {}, xfHandles = [];
+    if (ready && s.tool === 'select' && s.sel.length && !(s.drag && s.drag.kind === 'move')) {
+      const selE = els.filter(e => selSet.has(e.id)), single = selE.length === 1 ? selE[0] : null;
+      const ok = single ? !['cam', 'pin', 'curve'].includes(single.type) : selE.length > 1;
+      if (ok) {
+        hasXf = true; const b = single || BPL.bounds(selE), rot = single ? (single.rot || 0) : 0, k = 1 / s.zoom, hs = 10 * k;
+        xfFrame = { position: 'absolute', left: b.x * CW, top: b.y * CH, width: b.w * CW, height: b.h * CH, transform: rot ? `rotate(${rot}deg)` : 'none', transformOrigin: 'center', border: `${1.5 * k}px ${single ? 'solid' : 'dashed'} #ff9f0a`, pointerEvents: 'none', zIndex: 66, boxSizing: 'border-box' };
+        const pts = single && single.type === 'line' ? [[-1, 0], [1, 0]] : [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]];
+        const cur = (hx, hy) => { const base = Math.round(((Math.atan2(hy, hx) * 180 / Math.PI + rot) % 180 + 180) % 180 / 45) % 4; return ['ew-resize', 'nwse-resize', 'ns-resize', 'nesw-resize'][base]; };
+        xfHandles = pts.map(([hx, hy]) => ({ down: ev => this.xfDown(ev, hx, hy), s: { position: 'absolute', left: `calc(${(hx + 1) * 50}% - ${hs / 2}px)`, top: `calc(${(hy + 1) * 50}% - ${hs / 2}px)`, width: hs, height: hs, background: '#fff', border: `${1.5 * k}px solid #111`, boxShadow: `0 0 0 ${k}px #ff9f0a`, cursor: cur(hx, hy), pointerEvents: 'auto', boxSizing: 'border-box' } }));
+      }
+    }
+    const hasCurveH = !!(one && one.type === 'curve');
+    let curveHandles = [], curveGuide = '';
+    if (hasCurveH) { const P = k => [(one.x + one[k + 'x']) * CW, (one.y + one[k + 'y']) * CH], A = P('a'), B = P('b'), Q = P('q');
+      curveGuide = `M${A[0]} ${A[1]}L${Q[0]} ${Q[1]}L${B[0]} ${B[1]}`;
+      curveHandles = [['a', A, 'จุดเริ่ม'], ['q', Q, 'ลากเพื่อดัดโค้ง'], ['b', B, 'จุดปลาย']].map(([k, pt, t]) => ({ t, down: ev => this.cptDown(ev, k), s: { position: 'absolute', left: pt[0] - 8, top: pt[1] - 8, width: 16, height: 16, borderRadius: k === 'q' ? '50%' : 0, background: k === 'q' ? '#ffd000' : '#fff', border: '2px solid #111', cursor: 'move', zIndex: 71 } })); }
+    const hasRotate = !!(one && one.type === 'cam' && s.tool === 'select');
+    let rotateStyle = {};
+    if (hasRotate) { const [cx, cy] = BPL.center(one), a = (one.dir || 0) * Math.PI / 180, r = one.range || 100; rotateStyle = { position: 'absolute', left: cx + r * Math.cos(a) - 8, top: cy + r * Math.sin(a) - 8, width: 16, height: 16, borderRadius: '50%', background: '#ffd000', border: '2px solid #111', cursor: 'grab', zIndex: 9 }; }
+
+    // properties
+    let fields = [], geo = [], camSliders = [], seenList = [], linkCams = [], linkMode = '', typeOpts = [], typeOptsTitle = '', hasThick = false, modelOpts = [];
+    const pk = one && ready ? BPL.primaryKey(one) : 'label';
+    if (one) {
+      const e = one, F = (label, key, ph) => ({ label, key, ph: ph || '', value: e[key] ?? '', onChange: ev => this.update(e.id, { [key]: ev.target.value }, e.id + key) });
+      fields = ({ drop: [F('OUT FD', 'fd', 'FD1'), F('ช่อง (Chute)', 'chute', '49A'), F('รหัสสาขา', 'code', '21381'), F('กล้องที่เห็นช่องนี้ (ว่าง = คำนวณจากมุมกล้อง)', 'cams', 'เช่น 292, 293'), F('หมายเหตุ', 'note')],
+        cam: [F('ชื่อ / จุดติดตั้ง', 'name', 'เช่น หน้าช่อง FD1–FD3'), F('หมายเหตุ', 'note')], dock: [F('ปลายทาง (HUB)', 'hub', '14 SO3_HUB'), F('หมายเหตุ', 'note')],
+        pin: [F('รายละเอียด', 'note')], text: e.fit === false ? [F('ขนาดตัวอักษร (px)', 'size', '12')] : [] })[e.type] || [];
+      geo = [['X', 'x'], ['Y', 'y'], ['กว้าง', 'w'], ['สูง', 'h']].map(([label, k]) => ({ label, value: Math.round(e[k] * 100) / 100, onChange: ev => { const v = parseFloat(ev.target.value); if (!isNaN(v)) this.update(e.id, { [k]: k === 'w' || k === 'h' ? Math.max(0.25, v) : v }, e.id + k); } }));
+      const opt = (list, key, cur) => list.map(([v, t]) => ({ t, s: segBtn(cur === v), onClick: () => this.update(e.id, typeof v === 'object' ? v : { [key]: v }) }));
+      if (e.type === 'conveyor') { typeOptsTitle = 'ทิศทางการไหล'; typeOpts = opt([['l', '← ซ้าย'], ['r', 'ขวา →'], ['u', '↑ ขึ้น'], ['d', '↓ ลง']], 'dir', e.dir); }
+      if (e.type === 'zone') { typeOptsTitle = 'ชนิดพื้นที่'; typeOpts = opt([['none', 'โซน'], ['room', 'ห้อง'], ['hatch', 'ห้ามเข้า'], ['walk', 'ทางเดิน']], 'pattern', e.pattern || 'none'); }
+      if (e.type === 'shape') { typeOptsTitle = 'รูปทรง'; typeOpts = opt([['rect', 'สี่เหลี่ยม'], ['ellipse', 'วงรี']], 'shape', e.shape); hasThick = true; }
+      if (e.type === 'curve') { typeOptsTitle = 'หัวลูกศร'; typeOpts = opt([['none', 'ไม่มี'], ['end', 'ปลายเดียว'], ['both', 'สองหัว']], 'head', e.head || 'end'); hasThick = true; }
+      if (e.type === 'barrow') { typeOptsTitle = 'แบบลูกศร'; typeOpts = opt([[false, 'หัวเดียว →'], [true, 'สองหัว ↔']], 'double', !!e.double); }
+      if (e.type === 'line') { typeOptsTitle = 'ปลายเส้น'; typeOpts = opt([[false, 'เส้นเปล่า'], [true, 'ลูกศร']], 'head', !!e.head); hasThick = true; }
+      if (e.type === 'pillar' || e.type === 'wall') { const vert = e.h > e.w, L = e.w === e.h ? 2 : Math.max(e.w, e.h), S = e.w === e.h ? 0.5 : Math.min(e.w, e.h); typeOptsTitle = 'แนว'; typeOpts = [['v', 'แนวตั้ง', vert, { w: S, h: L }], ['h', 'แนวนอน', e.w > e.h, { w: L, h: S }]].map(([v, t, on, p]) => ({ t, s: segBtn(on), onClick: () => this.update(e.id, p) })); }
+      if (e.type === 'cam' && ready) {
+        modelOpts = Object.keys(MODEL).map(m => ({ t: MODEL[m].t, s: segBtn((e.model || 'bullet') === m), onClick: () => this.update(e.id, { model: m, fov: MODEL[m].fov, range: Math.max(e.range || 0, m === 'ptz' ? 200 : 0) || MODEL[m].range }) }));
+        camSliders = [['ทิศ °', 'dir', 0, 359], ['มุมกว้าง °', 'fov', 10, 360], ['ระยะ', 'range', 20, 600]].map(([label, k, min, max]) => ({ label, min, max, value: e[k] || 0, onChange: ev => this.update(e.id, { [k]: +ev.target.value }, e.id + k) }));
+        seenList = BPL.seenBy(e, els).slice(0, 30).map(x => ({ t: x.type === 'drop' ? (x.branch || x.fd || 'ช่อง') : (x.label || KIND[x.type]), onClick: () => this.setState({ sel: [x.id] }) }));
+      }
+      if (ready && (e.type === 'drop' || e.type === 'dock')) {
+        linkMode = e.cams && String(e.cams).trim() ? 'กำหนดเอง' : 'คำนวณอัตโนมัติ';
+        linkCams = BPL.camsFor(e, els).map(c => ({ t: c.no, s: { height: 26, padding: '0 9px', border: '1px solid #ffd000', background: s.imgs[c.no] ? '#ffd000' : 'transparent', color: s.imgs[c.no] ? '#111' : '#ffd000', fontWeight: 700, fontSize: 12, cursor: 'pointer' }, onClick: () => this.setState({ sel: [c.id] }) }));
+      }
+    }
+    const PH = { drop: 'ชื่อสาขา เช่น 2BNA_BDC', cam: 'เลขกล้อง เช่น 292', conveyor: 'ชื่อสายพาน', dock: 'เช่น OUT 001 LH', zone: 'ชื่อพื้นที่', text: 'พิมพ์ข้อความ', pin: 'เลข / ตัวอักษร', line: 'ป้ายกำกับ (ไม่บังคับ)', shape: 'ข้อความในรูป (ไม่บังคับ)', wall: 'ป้าย (ไม่บังคับ)' };
+    const HINT = { drop: 'ดร็อปสาขา', cam: 'เลขกล้อง (ใช้จับคู่กับภาพ)', conveyor: 'ชื่อสายพาน', dock: 'ประตู / ช่องจอด' };
+    const camImgV = one && one.type === 'cam' ? s.imgs[one.no] : null;
+    const selEls = els.filter(e => selSet.has(e.id)), bk = {}; selEls.forEach(e => bk[e.type] = (bk[e.type] || 0) + 1);
+
+    // layers
+    const LT = [['all', 'ทั้งหมด'], ['drop', 'ดร็อป'], ['cam', 'กล้อง'], ['conveyor', 'สายพาน'], ['dock', 'ประตู'], ['zone', 'พื้นที่'], ['text', 'ข้อความ'], ['other', 'อื่นๆ']];
+    let layList = [], layInfo = '';
+    if (s.tab === 'layers' && ready) {
+      const q = s.layQ.trim().toLowerCase(), main = ['drop', 'cam', 'conveyor', 'dock', 'zone', 'text'];
+      const all = els.filter(e => (s.layType === 'all' || (s.layType === 'other' ? !main.includes(e.type) : e.type === s.layType)) && (!q || [e.branch, e.fd, e.chute, e.no, e.name, e.label, e.hub].some(v => v && String(v).toLowerCase().includes(q))));
+      const order = { drop: 0, cam: 1, conveyor: 2, dock: 3, zone: 4, text: 5 };
+      all.sort((a, b) => ((order[a.type] ?? 9) - (order[b.type] ?? 9)) || (a.y - b.y) || (a.x - b.x));
+      layInfo = all.length > 200 ? `แสดง 200 จาก ${all.length}` : `${all.length} รายการ`;
+      layList = all.slice(0, 200).map(e => { const k = BPL.primaryKey(e); return { icon: TICON[e.type] || 'i-rect', value: e[k] ?? '', ph: KIND[e.type], sub: 'L' + BPL.zOf(e) + ' · ' + (e.type === 'drop' ? (e.fd || this.cellRef(e.x, e.y)) : e.type === 'cam' ? (e.name || this.cellRef(e.x, e.y)) : e.type === 'dock' ? (e.hub || '') : this.cellRef(e.x, e.y)), onChange: ev => this.update(e.id, { [k]: ev.target.value }, e.id + k), onClick: () => { this.setState({ sel: [e.id] }); this.centerOn(e); }, s: { display: 'flex', alignItems: 'center', gap: 8, padding: '4px 12px 4px 18px', borderBottom: '1px solid #1f1f1f', cursor: 'pointer', background: selSet.has(e.id) ? '#2a2408' : 'transparent', color: selSet.has(e.id) ? '#ffd000' : '#cfcfcf' } }; });
+    }
+
+    // cams tab
+    const withImg = cams.filter(c => s.imgs[c.no]).length, cq = s.camQ.trim().toLowerCase();
+    const camList = s.tab !== 'cams' || !ready ? [] : cams.filter(c => (s.camFilter === 'all' || (s.camFilter === 'has') === !!s.imgs[c.no]) && (!cq || (c.no + ' ' + (c.name || '')).toLowerCase().includes(cq)))
+      .sort((a, b) => (parseInt(a.no, 10) || 0) - (parseInt(b.no, 10) || 0))
+      .map(c => ({ no: c.no, sub: c.name || BPL.seenBy(c, els).slice(0, 3).map(x => x.branch || x.fd || x.label).filter(Boolean).join(' · ') || this.cellRef(c.x, c.y), has: !!s.imgs[c.no], none: !s.imgs[c.no], bg: s.imgs[c.no] ? { width: 64, height: 36, flex: 'none', background: `#000 url("${s.imgs[c.no].src}") center/cover no-repeat` } : {}, onClick: () => { this.setState({ sel: [c.id] }); this.centerOn(c); }, s: { display: 'flex', alignItems: 'center', gap: 12, padding: '8px 18px', borderBottom: '1px solid #1f1f1f', cursor: 'pointer', background: selSet.has(c.id) ? '#2a2408' : 'transparent' } }));
+
+    const tab = (k, t) => ({ t, onClick: () => this.setState({ tab: k }), s: { height: 44, border: 0, borderBottom: s.tab === k ? '2px solid #ffd000' : '2px solid transparent', background: 'transparent', color: s.tab === k ? '#ffd000' : '#a6a6a6', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' } });
+    const cnt = t => els.filter(e => e.type === t).length;
+    const savedAt = s.savedAt ? new Date(s.savedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
+
+    return {
+      layoutName: s.layout ? s.layout.name : '', onName: ev => this.setLayout({ ...s.layout, name: ev.target.value }),
+      undo: this.undo, redo: this.redo, noUndo: !this.hist.length, noRedo: !this.fut.length, saveNow: this.saveNow,
+      saveBtn: { height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', border: '1px solid ' + (s.dirty ? '#ffd000' : '#333'), background: s.dirty ? '#ffd000' : '#161616', color: s.dirty ? '#111' : '#f2f0e8', fontWeight: 800, fontSize: 12, cursor: s.pubBusy ? 'progress' : 'pointer', opacity: s.pubBusy ? 0.6 : 1 },
+      saveText: !ready ? 'กำลังโหลด…' : s.pubBusy ? s.pubMsg : s.dirty ? 'มีการแก้ไขที่ยังไม่ได้บันทึกขึ้นออนไลน์' : (savedAt ? 'ออนไลน์ล่าสุด ' + savedAt : 'ตรงกับออนไลน์แล้ว'),
+      logout: () => { if (confirm('ออกจากระบบบนเครื่องนี้? (งานที่ยังไม่ได้บันทึกขึ้นออนไลน์จะยังเก็บอยู่ในเครื่องนี้)')) BPL.cloud.logout(); },
+      zoomPct: Math.round(s.zoom * 100) + '%', zoomIn: () => this.zoomBy(1.25), zoomOut: () => this.zoomBy(0.8), fit: () => { this.userMoved = true; this.fit(); }, fitPaper: this.fitPaper,
+      toggleGrid: () => this.setState({ showGrid: !s.showGrid }), toggleCones: () => this.setState({ showCones: !s.showCones }), gridBtn: toggle(s.showGrid), coneBtn: toggle(s.showCones),
+      groups, hasFly: !!s.fly, flyStyle, flyTitle: s.fly ? (GROUPS.find(g => g[0] === s.fly) || [])[1] : '', flyItems,
+      canvasRef: this.canvasRef, canvasDown: this.canvasDown, canvasStyle, worldStyle, worldW: cols * CW, worldH: rows * CH,
+      showRulers, colHeads, rowHeads, items, cones, hasMarq, marqStyle, hasLinePrev, linePrev, hasResize, resizeStyle, resizeDown: this.resizeDown,
+      hasTRot, tRotStyle, tRotStem, tRotDown: this.tRotDown, hasRotate, rotateStyle, rotateDown: this.rotateDown,
+      hasToast: !!s.toast, toast: s.toast,
+      tabs: [tab('props', 'แก้ไข'), tab('layers', 'รายการ'), tab('cams', 'กล้อง · ' + cams.length), tab('data', 'ไฟล์ / แผ่นงาน')],
+      isTabProps: s.tab === 'props', isTabLayers: s.tab === 'layers', isTabCams: s.tab === 'cams', isTabData: s.tab === 'data',
+      selNone: !s.sel.length, selOne: !!one, selMany: s.sel.length > 1, selAny: s.sel.length > 0, selCount: s.sel.length,
+      selBreakdown: Object.keys(bk).map(k => KIND[k] + ' ' + bk[k]).join(' · '),
+      selKind: one ? KIND[one.type] : '', selIcon: one ? (one.type === 'cam' ? (one.model && one.model !== 'bullet' ? 'i-' + one.model : 'i-cam') : TICON[one.type]) : 'i-rect',
+      primaryVal: one ? (one[pk] ?? '') : '', primaryPh: one ? (PH[one.type] || 'ชื่อ') : '', primaryHint: one ? (HINT[one.type] || 'ชื่อ / ป้าย') : '',
+      onPrimary: ev => one && this.update(one.id, { [pk]: ev.target.value }, one.id + pk),
+      selCell: one && ready ? this.cellRef(one.x, one.y) : '',
+      del: this.del, dup: this.dup, fields, hasFields: fields.length > 0, geo,
+      hasTypeOpts: typeOpts.length > 0, typeOpts, typeOptsTitle, typeOptsGrid: { display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, typeOpts.length)},1fr)`, border: '1px solid #333' },
+      hasThick, thickVal: one ? (one.thick || 3) : 3, onThick: ev => one && this.update(one.id, { thick: +ev.target.value }, one.id + 'thick'),
+      selIsCam: !!(one && one.type === 'cam'), modelOpts, camSliders, seenList, seenCount: seenList.length,
+      selHasCams: !!(one && (one.type === 'drop' || one.type === 'dock')), linkCams, linkMode,
+      camHasImg: !!camImgV, camNoImg: !camImgV, camImgBg: camImgV ? { width: '100%', aspectRatio: '16/9', border: '1px solid #333', background: `#000 url("${camImgV.src}") center/contain no-repeat` } : {}, camImgTime: camImgV ? new Date(camImgV.t).toLocaleString('th-TH') : '',
+      onCamFile: ev => { const f = ev.target.files[0]; if (f && one) this.setImg(one.no, f); ev.target.value = ''; },
+      delImg: async () => { if (!one) return; await BPL.img.del(one.no); const imgs = { ...s.imgs }; delete imgs[one.no]; this.setState({ imgs, dirty: true }); },
+      ...this.styleVals(one, segBtn),
+      hasXf, xfFrame, xfHandles, toggleSnap: () => this.setState({ snap: !s.snap }), snapBtn: toggle(s.snap),
+      hasCurveH, curveHandles, curveGuide, stop: ev => ev.stopPropagation(),
+      levelBar: [0, 1, 2, 3, 4, 5].map(z => { const n = z ? els.filter(e => BPL.zOf(e) === z).length : els.length, on = s.focusZ === z; return { t: z ? String(z) : 'ทั้งหมด', title: (z ? 'ดูเฉพาะระดับ ' + z : 'แสดงทุกระดับ') + ' · ' + n + ' ชิ้น', onClick: () => this.setState({ focusZ: z }), s: { height: 32, minWidth: z ? 30 : 58, padding: '0 8px', border: 0, borderRight: '1px solid #333', background: on ? '#ffd000' : 'transparent', color: on ? '#111' : (n ? '#f2f0e8' : '#555'), fontWeight: 800, fontSize: 12, cursor: 'pointer' } }; }),
+      manyActs: [['ชิดซ้าย', () => this.align('left')], ['ชิดบน', () => this.align('top')], ['กระจายแนวนอน', () => this.align('h')], ['กระจายแนวตั้ง', () => this.align('v')], ['ทำสำเนา', this.dup], ['ลบทั้งหมด', this.del]].map(([t, onClick]) => ({ t, onClick })),
+      arrFields: [['จำนวนชุด', 'n'], ['เลื่อน X', 'dx'], ['เลื่อน Y', 'dy']].map(([label, k]) => ({ label, value: s.arr[k], onChange: ev => this.setState({ arr: { ...s.arr, [k]: parseFloat(ev.target.value) || 0 } }) })),
+      arrN: s.arr.n, runArray: this.runArray,
+      layQ: s.layQ, onLayQ: ev => this.setState({ layQ: ev.target.value }), layList, layInfo,
+      layTypes: LT.map(([v, t]) => ({ t, onClick: () => this.setState({ layType: v }), s: { height: 26, padding: '0 9px', border: '1px solid ' + (s.layType === v ? '#ffd000' : '#333'), background: s.layType === v ? '#ffd000' : 'transparent', color: s.layType === v ? '#111' : '#cfcfcf', fontSize: 11, fontWeight: 700, cursor: 'pointer' } })),
+      camCount: cams.length, camWithImg: withImg, camPct: cams.length ? Math.round(withImg / cams.length * 100) + '%' : '0%',
+      camBar: { height: '100%', width: (cams.length ? withImg / cams.length * 100 : 0) + '%', background: '#ffd000' },
+      onBulk: ev => { const f = [...ev.target.files]; ev.target.value = ''; this.bulk(f); },
+      camQ: s.camQ, onCamQ: ev => this.setState({ camQ: ev.target.value }),
+      camFilters: [['all', 'ทั้งหมด'], ['none', 'ยังไม่มีภาพ'], ['has', 'มีภาพแล้ว']].map(([v, t]) => ({ t, s: segBtn(s.camFilter === v), onClick: () => this.setState({ camFilter: v }) })),
+      camList,
+      paperText: `ขนาดแผ่นงาน ${cols} × ${rows} ช่อง · ชีสเดิมเริ่มที่ช่อง (${ox}, ${oy})`,
+      paperActs: [['ขยายรอบด้าน +10', () => this.growPaper(10)], ['ขยายรอบด้าน +30', () => this.growPaper(30)], ['ตัดขอบให้พอดีงาน', () => this.trimPaper()], ['ดูทั้งแผ่น', this.fitPaper]].map(([t, onClick]) => ({ t, onClick })),
+      impText: s.imp.text, onImpText: ev => this.setState({ imp: { ...s.imp, text: ev.target.value } }),
+      impFields: [[`วางที่คอลัมน์ (ว่าง = ${ox}, ตรงชีสเดิม)`, 'ox'], [`วางที่แถว (ว่าง = ${oy})`, 'oy']].map(([label, k]) => ({ label, value: s.imp[k], onChange: ev => this.setState({ imp: { ...s.imp, [k]: ev.target.value } }) })),
+      impModes: [['append', 'เพิ่มต่อจากเดิม'], ['replace', 'แทนที่ทั้งหมด']].map(([v, t]) => ({ t, s: segBtn(s.imp.mode === v), onClick: () => this.setState({ imp: { ...s.imp, mode: v } }) })),
+      runImport: this.runImport,
+      exportFile: () => { this.saveLocal(); BPL.exportFile(s.layout); },
+      importFile: async ev => { const f = ev.target.files[0]; ev.target.value = ''; if (!f) return; try { const layout = await BPL.importFile(f); const imgs = await BPL.img.all(); this.hist = []; this.fut = []; this.setState({ layout, imgs, sel: [], dirty: true }, () => this.fit()); this.say('นำเข้าเรียบร้อย · กดบันทึกเพื่อส่งขึ้นออนไลน์'); } catch (err) { this.say('นำเข้าไม่สำเร็จ: ' + err.message); } },
+      resetDefault: async () => { if (!confirm('รีเซ็ตเลเอ้าเป็นค่าตั้งต้นจากชีส? (ภาพกล้องยังอยู่ · กดย้อนกลับได้)')) return; let def = null; try { def = await BPL.cloud.defaultLayout(); } catch (err) {} if (!def) { this.say('โหลดเลเอ้าตั้งต้นไม่ได้'); return; } this.pushHist(); this.setLayout({ ...def, updated: Date.now() }); this.setState({ sel: [] }, () => this.fit()); },
+      cursorText: s.cur && ready ? this.cellRef(s.cur.x, s.cur.y) : '—',
+      countsText: `ดร็อป ${cnt('drop')} · กล้อง ${cams.length} (มีภาพ ${withImg}) · สายพาน ${cnt('conveyor')} · ประตู ${cnt('dock')}`,
+      hint: this.space ? 'ลากเพื่อเลื่อนแผ่นงาน' : (curTool.hint || (curTool.mode === 'point' ? 'คลิกเพื่อวาง' + curTool.name : curTool.mode === 'rect' ? 'ลากเพื่อวาด' + curTool.name : 'คลิกเลือก · ลากเพื่อย้าย · ลากพื้นที่ว่างเพื่อเลือกหลายชิ้น'))
+    };
+  }
+}
+</script>
+</body>
+</html>
