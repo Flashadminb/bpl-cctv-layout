@@ -220,17 +220,20 @@
       const s = (raw || '').trim(); if (!s) return; const x = ox + c, y = oy + r;
       if (/^[<>]/.test(s) || /[>]\s*[>]|[<]\s*[<]/.test(s)) { const lbl = s.replace(/[<>]/g, '').trim(); out.push({ id: uid(), type: 'conveyor', x, y, w: runRight(r, c, 80), h: 1, dir: s.includes('<') ? 'l' : 'r', label: lbl }); return; }
       if (/_(BDC|PDC|DC|ODS)$/i.test(s) || /^virtual/i.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'branch', v: s }); return; }
+      if (/^\d{5}$/.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'code', v: s }); return; }
       if (/^OUT\s*FD\s*\d+/i.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'fd', v: s.replace(/^OUT\s*/i, '').replace(/\s+/g, '') }); return; }
       if (/^\d{2}[AB]$/i.test(s) || /^D\d{2}/.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'chute', v: s }); return; }
       if (isCam(s)) { const nums = s.includes('-') ? (([a, b]) => { const r2 = []; for (let i = +a; i <= +b; i++) r2.push(String(i).padStart(3, '0')); return r2; })(s.split('-').map(t => t.trim())) : s.split(',').map(t => t.trim()); nums.forEach((n, i) => out.push({ id: uid(), type: 'cam', no: n, name: '', note: '', x: x + (nums.length > 1 ? (i - (nums.length - 1) / 2) * 0.5 : 0), y, w: 1, h: 1, dir: 90, fov: 70, range: 120 })); return; }
-      if (/^(OUT|IN)\s*\d{3}/i.test(s)) { out.push({ id: uid(), type: 'dock', x, y, w: 2, h: 3, label: s.replace(/\s+/g, ' '), hub: '', note: '' }); return; }
+      if (/^(OUT|IN)\s*(FD\b|\d{2,3})/i.test(s)) { const [l, ...h] = s.split('\u2028'); out.push({ id: uid(), type: 'dock', x, y, w: 2, h: 3, label: l.replace(/\s+/g, ' ').trim(), hub: h.join(' ').trim(), note: '' }); return; }
+      const lane = /BPL-?\s*(OUT|IN)\s*-\s*\d+\s*(LH|FD)?/i.exec(s);
+      if (lane) { out.push({ id: uid(), type: 'dock', x, y, w: Math.min(runRight(r, c, 8), 8), h: 1, label: lane[0].replace(/\s+/g, ' '), hub: s.replace(lane[0], '').replace(/\s+/g, ' ').trim(), note: '' }); return; }
       if (s === 'เสา') { out.push({ id: uid(), type: 'pillar', x, y, w: 1, h: 1, label: 'เสา' }); return; }
-      out.push({ id: uid(), type: 'text', x, y, w: Math.min(runRight(r, c, 6), 6), h: 1, label: s, size: 11 });
+      out.push({ id: uid(), type: 'text', x, y, w: Math.min(runRight(r, c, 6), 6), h: 1, label: s.replace(/\u2028/g, ' '), size: 11 });
     }));
     Object.keys(parts).forEach(x => {
       const list = parts[x].sort((a, b) => a.y - b.y); let g = null;
-      const flush = () => { if (!g) return; const d = { id: uid(), type: 'drop', x: +x, y: g.y0, w: 1, h: Math.max(2, g.y1 - g.y0 + 1), fd: '', chute: '', branch: '', code: '', cams: '', note: '' }; g.items.forEach(p => d[p.k] = d[p.k] || p.v); out.push(d); g = null; };
-      list.forEach(p => { if (g && p.y - g.y1 <= 2) { g.y1 = p.y; g.items.push(p); } else { flush(); g = { y0: p.y, y1: p.y, items: [p] }; } }); flush();
+      const flush = () => { if (!g) return; const d = { id: uid(), type: 'drop', x: +x, y: g.y0, w: 1, h: g.items.length === 1 ? 1 : Math.max(2, g.y1 - g.y0 + 1), fd: '', chute: '', branch: '', code: '', cams: '', note: '' }; g.items.forEach(p => d[p.k] = d[p.k] || p.v); out.push(d); g = null; };
+      list.forEach(p => { if (g && p.y - g.y1 <= (p.k === 'code' || g.items[g.items.length - 1].k === 'code' ? 4 : 2)) { g.y1 = p.y; g.items.push(p); } else { flush(); g = { y0: p.y, y1: p.y, items: [p] }; } }); flush();
     });
     return out;
   }

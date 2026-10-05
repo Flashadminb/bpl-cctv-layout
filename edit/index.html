@@ -7,6 +7,7 @@
 <script src="../assets/bpl-store.js"></script>
 <script src="../assets/config.js"></script>
 <script src="../assets/bpl-cloud.js"></script>
+<script src="../assets/bpl-xlsx.js"></script>
 <script src="../assets/support.js"></script>
 </head>
 <body>
@@ -462,6 +463,23 @@ input[type=range]{accent-color:#ffd000;width:100%}
             <sc-for list="{{ paperActs }}" as="a" hint-placeholder-count="4"><button onClick="{{ a.onClick }}" style="height:34px;padding:0 12px;border:1px solid #333;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">{{ a.t }}</button></sc-for>
           </div>
         </div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">นำเข้าจากไฟล์ EXCEL (.xlsx)</div>
+          <div style="font-size:12px;line-height:1.6;color:#cfcfcf">เลือกไฟล์ Excel ที่วาดผังเป็นตาราง ระบบอ่านในเครื่องนี้แล้วแปลงเป็นเลเอ้าให้ ไฟล์ไม่ถูกส่งไปที่ไหน · แนะนำให้สร้าง <b style="color:#f2f0e8">＋ แผ่นเปล่า</b> ก่อน แล้วนำเข้าลงแผ่นนั้น</div>
+          <label style="height:34px;display:flex;align-items:center;padding:0 12px;border:1px solid #444;cursor:pointer;font-size:13px;font-weight:700" style-hover="background:#262626">เลือกไฟล์ .xlsx<input type="file" accept=".xlsx" onChange="{{ onXlsFile }}" style="display:none"/></label>
+          <div style="font-size:12px;font-weight:700;color:#ffd000;min-height:16px">{{ xlsMsg }}</div>
+          <sc-if value="{{ xlsHas }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11px;font-weight:700;color:#8a8a8a">เลือกแผ่นในไฟล์</div>
+            <div style="display:flex;flex-direction:column;border:1px solid #333;max-height:190px;overflow-y:auto">
+              <sc-for list="{{ xlsSheets }}" as="o" hint-placeholder-count="0"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+            </div>
+            <div style="font-size:12px;line-height:1.6;color:#cfcfcf">{{ xlsSummary }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #333">
+              <sc-for list="{{ impModes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="{{ o.s }}">{{ o.t }}</button></sc-for>
+            </div>
+            <button onClick="{{ xlsRun }}" style="height:36px;padding:0 14px;border:0;background:#ffd000;color:#111;font-weight:800;cursor:pointer;text-align:left" style-hover="background:#ffe04d">แปลงเป็นเลเอ้า</button>
+          </sc-if>
+        </div>
         <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
           <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">วางจาก GOOGLE SHEETS</div>
           <div style="font-size:12px;line-height:1.6;color:#cfcfcf">คัดลอกช่วงเซลล์จากชีส (Ctrl+C) แล้ววางที่นี่ ระบบแปลงให้อัตโนมัติ: <b style="color:#f2f0e8">xxx_BDC/PDC</b> → ช่องดร็อป · <b style="color:#f2f0e8">เลข 3 หลัก</b> → กล้อง · <b style="color:#f2f0e8">&gt; &gt; / &lt; &lt;</b> → สายพาน · <b style="color:#f2f0e8">OUT/IN 001</b> → ประตู · <b style="color:#f2f0e8">เสา</b> → เสา</div>
@@ -565,7 +583,7 @@ const KIND = { barrow: 'ลูกศรตัวใหญ่', curve: 'ลูก
 const TICON = { barrow: 'i-barrow', curve: 'i-curve', drop: 'i-drop', cam: 'i-cam', conveyor: 'i-conv', slide: 'i-slide', dock: 'i-dock', door: 'i-door', wall: 'i-wall', zone: 'i-zone', pillar: 'i-pillar', text: 'i-text', pin: 'i-pin', shape: 'i-rect', line: 'i-arrow' };
 
 class Component extends DCLogic {
-  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', linkAdd: '', sheet: 'main', sheets: null, sheetBusy: false, dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
+  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', xls: { has: false, name: '', sheets: [], i: -1, summary: '', msg: '' }, linkAdd: '', sheet: 'main', sheets: null, sheetBusy: false, dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
   hist = []; fut = [];
 
   componentDidMount() {
@@ -972,6 +990,31 @@ class Component extends DCLogic {
     this.setLayout({ ...l, elements: l.elements.map(e => ({ ...e, x: e.x - dx, y: e.y - dy })), cols: Math.ceil(b.w) + m * 2, rows: Math.ceil(b.h) + m * 2, ox: (l.ox || 0) - dx, oy: (l.oy || 0) - dy, updated: Date.now() });
     this.say('ตัดขอบเหลือเว้นรอบงาน ' + m + ' ช่อง'); setTimeout(() => this.fitPaper(), 30);
   }
+  // Excel import: read the workbook on this device, convert the chosen sheet, then place it like a paste
+  xlsOpen = async file => {
+    this.setState({ xls: { has: false, name: file.name, sheets: [], i: -1, summary: '', msg: 'กำลังอ่านไฟล์…' } });
+    try {
+      this.xlsWb = await BPLXlsx.open(await file.arrayBuffer());
+      const all = this.xlsWb.sheets.map((sh, i) => ({ i, name: sh.name, hidden: sh.hidden })), sheets = all.filter(x => !x.hidden).length ? all.filter(x => !x.hidden) : all;
+      const pick = sheets.find(x => /layout.*cctv/i.test(x.name)) || sheets.find(x => /layout/i.test(x.name)) || sheets[0];
+      this.setState({ xls: { has: true, name: file.name, sheets, i: -1, summary: '', msg: file.name } }, () => this.xlsPick(pick.i));
+    } catch (err) { this.setState({ xls: { ...this.state.xls, has: false, msg: 'อ่านไฟล์ไม่ได้: ' + err.message } }); }
+  };
+  xlsPick = async i => {
+    this.setState({ xls: { ...this.state.xls, i, summary: 'กำลังแปลง…' } });
+    try {
+      const sh = await this.xlsWb.sheet(i), els = BPLXlsx.toElements(sh), n = t => els.filter(e => e.type === t).length;
+      this.xlsEls = els; this.xlsSize = { cols: sh.cols, rows: sh.rows };
+      this.setState({ xls: { ...this.state.xls, i, summary: els.length ? 'พบ ' + els.length + ' ชิ้น: ดร็อป ' + n('drop') + ' · กล้อง ' + n('cam') + ' · สายพาน ' + n('conveyor') + ' · ประตู ' + n('dock') + ' · พื้นที่ ' + n('zone') + ' · ข้อความ ' + n('text') + ' · เสา ' + n('pillar') : 'แผ่นนี้ไม่มีข้อมูลที่แปลงได้' } });
+    } catch (err) { this.xlsEls = []; this.setState({ xls: { ...this.state.xls, i, summary: 'แปลงแผ่นนี้ไม่ได้: ' + err.message } }); }
+  };
+  xlsRun = () => {
+    const src = this.xlsEls || []; if (!src.length) { this.say('ยังไม่มีข้อมูลให้แปลง'); return; }
+    const o = this.off(), l = this.state.layout, out = src.map(e => ({ ...e, id: BPL.uid(), x: e.x + o.ox, y: e.y + o.oy }));
+    this.pushHist();
+    this.setLayout({ ...l, elements: this.state.imp.mode === 'replace' ? out : [...this.els(), ...out], cols: Math.max(l.cols || 0, this.xlsSize.cols + o.ox * 2), rows: Math.max(l.rows || 0, this.xlsSize.rows + o.oy * 2), updated: Date.now() });
+    this.setState({ sel: [], tab: 'props' }); this.say('นำเข้า ' + out.length + ' ชิ้นจาก Excel แล้ว · ตรวจดูแล้วกดบันทึก (กดย้อนกลับได้)'); setTimeout(() => this.fit(), 30);
+  };
   runImport = () => {
     const { text, ox, oy, mode } = this.state.imp; if (!text.trim()) { this.say('ยังไม่ได้วางข้อมูล'); return; }
     const o = this.off(), out = BPL.parseSheet(text, ox === '' ? o.ox : (parseInt(ox, 10) || 0), oy === '' ? o.oy : (parseInt(oy, 10) || 0));
@@ -1202,6 +1245,9 @@ class Component extends DCLogic {
       camList,
       paperText: `ขนาดแผ่นงาน ${cols} × ${rows} ช่อง · ชีสเดิมเริ่มที่ช่อง (${ox}, ${oy})`,
       ...this.sheetVals(ready),
+      onXlsFile: ev => { const f = ev.target.files[0]; ev.target.value = ''; if (f) this.xlsOpen(f); }, xlsRun: this.xlsRun,
+      xlsHas: s.xls.has, xlsMsg: s.xls.msg, xlsSummary: s.xls.summary,
+      xlsSheets: s.xls.sheets.map(x => ({ t: x.name, onClick: () => this.xlsPick(x.i), s: { height: 30, flex: 'none', padding: '0 10px', border: 0, borderBottom: '1px solid #2a2a2a', textAlign: 'left', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: x.i === s.xls.i ? '#ffd000' : 'transparent', color: x.i === s.xls.i ? '#111' : '#f2f0e8' } })),
       paperActs: [['ขยายรอบด้าน +10', () => this.growPaper(10)], ['ขยายรอบด้าน +30', () => this.growPaper(30)], ['ตัดขอบให้พอดีงาน', () => this.trimPaper()], ['ดูทั้งแผ่น', this.fitPaper]].map(([t, onClick]) => ({ t, onClick })),
       impText: s.imp.text, onImpText: ev => this.setState({ imp: { ...s.imp, text: ev.target.value } }),
       impFields: [[`วางที่คอลัมน์ (ว่าง = ${ox}, ตรงชีสเดิม)`, 'ox'], [`วางที่แถว (ว่าง = ${oy})`, 'oy']].map(([label, k]) => ({ label, value: s.imp[k], onChange: ev => this.setState({ imp: { ...s.imp, [k]: ev.target.value } }) })),
