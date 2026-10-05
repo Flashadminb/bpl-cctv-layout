@@ -81,7 +81,8 @@ input[type=range]{accent-color:#ffd000;width:100%}
       <div style="font-weight:800;font-size:15px">Layout Studio</div>
       <div style="font-size:11px;color:#8a8a8a">หลังบ้าน · โหมดแก้ไข</div>
     </div>
-    <input data-hide-narrow="1" class="input" value="{{ layoutName }}" onChange="{{ onName }}" title="ชื่อเลเอ้า" style="flex:0 1 200px;min-width:80px;height:34px;font-weight:600"/>
+    <input data-hide-narrow="1" class="input" value="{{ layoutName }}" onChange="{{ onName }}" title="ชื่อแผ่นงาน" style="flex:0 1 200px;min-width:80px;height:34px;font-weight:600"/>
+    <button onClick="{{ sheetTab }}" title="จัดการแผ่นงาน / เลือกแผ่นที่หน้างานเห็น" style="{{ sheetBadgeStyle }}">{{ sheetBadge }}</button>
     <div style="width:1px;height:28px;background:#2a2a2a;flex:none"></div>
     <div style="display:flex;gap:4px;flex:none">
       <button onClick="{{ undo }}" disabled="{{ noUndo }}" title="ย้อนกลับ (Ctrl+Z)" style="height:34px;display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #333;background:#161616;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer" style-hover="background:#262626"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-undo"></use></svg><span data-hide-narrow="1">ย้อนกลับ</span></button>
@@ -102,7 +103,7 @@ input[type=range]{accent-color:#ffd000;width:100%}
     <button onClick="{{ toggleCones }}" style="{{ coneBtn }}">มุมกล้อง</button>
     <button onClick="{{ accShow }}" title="ตั้งไอดีและรหัสผ่านเข้าเว็บ" style="height:34px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">รหัสผ่าน</button>
     <button onClick="{{ logout }}" title="ออกจากระบบ / เปลี่ยนรหัส" style="height:34px;padding:0 12px;border:1px solid #333;background:#161616;color:#cfcfcf;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#262626">ออก</button>
-    <a href="../view/" target="_blank" style="display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;background:#ffd000;color:#111;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;flex:none" style-hover="background:#ffe04d;color:#111"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-eye"></use></svg>หน้าแสดงผล</a>
+    <a href="{{ viewHref }}" target="_blank" style="display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;background:#ffd000;color:#111;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;flex:none" style-hover="background:#ffe04d;color:#111"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-eye"></use></svg>หน้าแสดงผล</a>
   </header>
 
   <nav style="grid-row:2;border-right:1px solid #2a2a2a;display:flex;flex-direction:column;align-items:stretch;padding:6px 0;gap:2px;background:#0b0b0b;position:relative;z-index:25">
@@ -429,8 +430,32 @@ input[type=range]{accent-color:#ffd000;width:100%}
       </sc-if>
 
       <sc-if value="{{ isTabData }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #2a2a2a">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">แผ่นงานทั้งหมด</div>
+          <div style="font-size:12px;line-height:1.6;color:#cfcfcf">ทำแผ่นใหม่ไว้แก้โดยที่หน้างานยังเห็นแผ่นเดิม พอพร้อมแล้วค่อยกด <b style="color:#f2f0e8">ให้หน้างานเห็น</b> · ภาพกล้องใช้ร่วมกันทุกแผ่น</div>
+          <sc-for list="{{ sheetRows }}" as="r" hint-placeholder-count="1">
+            <div style="{{ r.s }}">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0">
+                <div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">{{ r.name }}</div>
+                <sc-if value="{{ r.live }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:800;padding:2px 6px;background:#ffd000;color:#111;white-space:nowrap">หน้างานเห็น</span></sc-if>
+                <sc-if value="{{ r.cur }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:800;padding:2px 6px;border:1px solid #f2f0e8;white-space:nowrap">กำลังแก้</span></sc-if>
+              </div>
+              <div style="font-size:11px;color:#8a8a8a">{{ r.sub }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <sc-if value="{{ r.canOpen }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.open }}" style="height:28px;padding:0 10px;border:1px solid #444;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer" style-hover="background:#262626">เปิดแก้ไข</button></sc-if>
+                <a href="{{ r.href }}" target="_blank" style="height:28px;padding:0 10px;border:1px solid #444;color:#f2f0e8;font-weight:700;font-size:12px;text-decoration:none;display:flex;align-items:center" style-hover="background:#262626;color:#f2f0e8">ดูตัวอย่าง</a>
+                <sc-if value="{{ r.canLive }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.activate }}" style="height:28px;padding:0 10px;border:0;background:#ffd000;color:#111;font-weight:800;font-size:12px;cursor:pointer" style-hover="background:#ffe04d">ให้หน้างานเห็น</button></sc-if>
+                <sc-if value="{{ r.canLive }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.del }}" style="height:28px;padding:0 10px;border:1px solid #3a1a14;background:transparent;color:#ff8a73;font-weight:700;font-size:12px;cursor:pointer">ลบ</button></sc-if>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button onClick="{{ sheetNewBlank }}" disabled="{{ sheetBusy }}" style="height:34px;padding:0 12px;border:1px solid #444;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">＋ แผ่นเปล่า</button>
+            <button onClick="{{ sheetNewCopy }}" disabled="{{ sheetBusy }}" style="height:34px;padding:0 12px;border:1px solid #444;background:transparent;color:#f2f0e8;font-weight:700;font-size:12px;cursor:pointer;text-align:left" style-hover="background:#262626">＋ สำเนาแผ่นนี้</button>
+          </div>
+        </div>
         <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #2a2a2a">
-          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">แผ่นงาน</div>
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#ffd000">ขนาดแผ่นงาน</div>
           <div style="font-size:12px;line-height:1.6;color:#cfcfcf">แผ่นกระดาษขาวมีพื้นที่ว่างรอบด้าน สำหรับวาดเลเอ้ารอบนอกเพิ่มในอนาคต ขยายเพิ่มได้ตลอด ของเดิมไม่เสีย</div>
           <div style="font-size:13px;font-weight:700">{{ paperText }}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -540,7 +565,7 @@ const KIND = { barrow: 'ลูกศรตัวใหญ่', curve: 'ลูก
 const TICON = { barrow: 'i-barrow', curve: 'i-curve', drop: 'i-drop', cam: 'i-cam', conveyor: 'i-conv', slide: 'i-slide', dock: 'i-dock', door: 'i-door', wall: 'i-wall', zone: 'i-zone', pillar: 'i-pillar', text: 'i-text', pin: 'i-pin', shape: 'i-rect', line: 'i-arrow' };
 
 class Component extends DCLogic {
-  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', linkAdd: '', dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
+  state = { ready: false, layout: null, imgs: {}, sel: [], tool: 'select', last: { sel: 'select', drop: 'drop', cam: 'cam', flow: 'conveyor', struct: 'wall', area: 'zone', note: 'text' }, fly: null, focusZ: 0, snap: true, zoom: 0.4, pan: { x: 40, y: 40 }, showGrid: true, showCones: true, tab: 'props', cur: null, drag: null, camFilter: 'all', camQ: '', layQ: '', layType: 'all', imp: { text: '', ox: '', oy: '', mode: 'append' }, arr: { n: 5, dx: 1, dy: 0 }, saved: true, savedAt: null, toast: '', linkAdd: '', sheet: 'main', sheets: null, sheetBusy: false, dirty: false, pubBusy: false, pubMsg: '', acc: { open: false, viewId: '', viewPw: '', viewToken: '', editId: '', editPw: '', msg: '', busy: false, info: null } };
   hist = []; fut = [];
 
   componentDidMount() {
@@ -552,7 +577,7 @@ class Component extends DCLogic {
       const d = await BPL.cloud.editLoad(); let layout = d.layout, dirty = d.dirty;
       if (d.authError) { BPL.cloud.logout(); return; }
       if (d.stale && confirm('บนออนไลน์มีเวอร์ชันใหม่กว่า (บันทึกเมื่อ ' + new Date(d.remoteUpdated).toLocaleString('th-TH') + ') แต่เครื่องนี้มีงานที่ยังไม่ได้บันทึกขึ้นออนไลน์\n\nOK = ใช้เวอร์ชันออนไลน์ (ทิ้งงานค้างในเครื่องนี้)\nCancel = แก้งานค้างในเครื่องนี้ต่อ')) { layout = await BPL.cloud.useRemote(); dirty = false; }
-      this.setState({ ready: true, layout, imgs: d.imgs, savedAt: d.remoteUpdated, dirty }, () => this.fit());
+      this.setState({ ready: true, layout, imgs: d.imgs, savedAt: d.remoteUpdated, dirty, sheet: d.sheet, sheets: d.sheets }, () => this.fit());
       if (!d.online) this.say('โหลดข้อมูลออนไลน์ไม่ได้ · กำลังใช้งานที่เก็บไว้ในเครื่องนี้');
     };
     go();
@@ -597,6 +622,16 @@ class Component extends DCLogic {
       this.setState({ acc: { ...this.state.acc, viewPw: '', viewToken: '', editPw: '', info, busy: false, msg: 'บันทึกแล้ว · ใช้รหัสผ่านใหม่เข้าเว็บได้ทันที' } });
     } catch (err) { this.setState({ acc: { ...this.state.acc, busy: false, msg: err.message } }); }
   };
+  // sheets: every action is one commit; switching sheets reloads the page (each sheet keeps its own local draft)
+  sheetDo = async (work, done) => {
+    if (this.state.sheetBusy) return; this.setState({ sheetBusy: true });
+    try { const sheets = await work(); if (done) done(sheets); else this.setState({ sheets, sheetBusy: false }); }
+    catch (err) { this.setState({ sheetBusy: false }); this.say('ทำไม่สำเร็จ: ' + err.message); }
+  };
+  sheetNew = copy => {
+    const name = prompt(copy ? 'ชื่อแผ่นงานใหม่ (สำเนาของแผ่นนี้)' : 'ชื่อแผ่นงานใหม่ (แผ่นเปล่า)', copy ? (this.state.layout.name || '') + ' (ใหม่)' : 'แผ่นงานใหม่'); if (!name || !name.trim()) return;
+    this.saveLocal(); this.sheetDo(() => BPL.cloud.sheetCreate(name.trim(), copy ? this.state.layout : null), () => location.reload());
+  };
   pushHist(key) {
     const now = Date.now();
     if (key && key === this.lk && now - this.lt < 1200) { this.lt = now; return; }
@@ -617,7 +652,7 @@ class Component extends DCLogic {
     try {
       const res = await BPL.cloud.publish(snap, { force: force === true, onProgress: (i, n) => this.setState({ pubMsg: 'กำลังอัปโหลดภาพ ' + i + '/' + n + '…' }) });
       const changed = this.state.layout !== snap; if (changed) BPL.save(this.state.layout);
-      this.setState({ pubBusy: false, savedAt: res.layout.updated, dirty: changed || res.left > 0 || this.state.imgs !== imgs0 });
+      this.setState({ pubBusy: false, sheets: res.sheets, savedAt: res.layout.updated, dirty: changed || res.left > 0 || this.state.imgs !== imgs0 });
       this.say(res.left ? 'บันทึกแล้ว แต่ยังเหลือภาพอีก ' + res.left + ' ภาพ (GitHub จำกัดจำนวนอัปโหลดต่อชั่วโมง) · รอสักครู่แล้วกดบันทึกอีกครั้ง' : 'บันทึกขึ้นออนไลน์แล้ว · หน้าวิวจะอัปเดตภายในไม่ถึง 1 นาที');
     } catch (err) {
       this.setState({ pubBusy: false });
@@ -944,6 +979,22 @@ class Component extends DCLogic {
     this.say('แปลงได้ ' + out.length + ' ชิ้น'); setTimeout(() => this.fit(), 30);
   };
 
+  sheetVals(ready) {
+    const s = this.state, list = (s.sheets && s.sheets.sheets) || [], live = s.sheets ? s.sheets.active : s.sheet, isLive = s.sheet === live;
+    const when = t => t ? 'บันทึกล่าสุด ' + new Date(t).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : 'ยังไม่เคยบันทึก';
+    const sheetRows = list.map(x => {
+      const cur = x.id === s.sheet, name = (cur && s.layout ? s.layout.name : x.name) || 'แผ่นหลัก';
+      return { name, cur, live: x.id === live, canOpen: !cur, canLive: x.id !== live, sub: when(x.updated), href: '../view/?sheet=' + x.id,
+        s: { display: 'flex', flexDirection: 'column', gap: 6, padding: 10, border: '1px solid ' + (cur ? '#f2f0e8' : '#333'), background: cur ? '#1c1c1c' : 'transparent' },
+        open: () => { this.saveLocal(); BPL.cloud.sheetOpen(x.id); location.reload(); },
+        activate: () => { if (confirm('ให้หน้างานเห็นแผ่น "' + name + '" แทนแผ่นปัจจุบัน?\n\nหน้างานจะเห็นเวอร์ชันที่บันทึกล่าสุดของแผ่นนี้' + (cur && s.dirty ? ' (งานที่ยังไม่ได้กดบันทึกจะยังไม่ขึ้น)' : ''))) this.sheetDo(() => BPL.cloud.sheetActivate(x.id), sheets => { this.setState({ sheets, sheetBusy: false }); this.say('หน้างานเห็นแผ่น "' + name + '" แล้ว'); }); },
+        del: () => { if (confirm('ลบแผ่น "' + name + '" ถาวร?')) this.sheetDo(() => BPL.cloud.sheetDelete(x.id), sheets => { if (cur) location.reload(); else this.setState({ sheets, sheetBusy: false }); }); } };
+    });
+    return { sheetRows, sheetBusy: s.sheetBusy, sheetNewBlank: () => this.sheetNew(false), sheetNewCopy: () => this.sheetNew(true), sheetTab: () => this.setState({ tab: 'data' }),
+      viewHref: isLive ? '../view/' : '../view/?sheet=' + s.sheet,
+      sheetBadge: !ready ? '' : isLive ? 'หน้างานเห็นแผ่นนี้' : 'แผ่นร่าง · หน้างานยังไม่เห็น',
+      sheetBadgeStyle: { height: 34, padding: '0 10px', flex: 'none', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, cursor: 'pointer', border: '1px solid ' + (isLive ? '#ffd000' : '#ff9f0a'), background: isLive ? 'transparent' : '#ff9f0a', color: isLive ? '#ffd000' : '#111', display: ready ? 'block' : 'none' } };
+  }
   styleVals(one, segBtn) {
     const FILLS = [['', 'ค่าเริ่มต้น'], ['#ffffff', 'ขาว'], ['#d7d3d3', 'เทาอ่อน'], ['#7d7979', 'เทา'], ['#1d1d1d', 'ดำ'], ['#ffd000', 'เหลือง'], ['#fff1a6', 'เหลืองอ่อน'], ['#f4a259', 'ส้ม'], ['#ec3013', 'แดง'], ['#7fc8a9', 'เขียว'], ['#8fb8e8', 'ฟ้า'], ['#b39ddb', 'ม่วง']];
     const INKS = [['', 'ค่าเริ่มต้น'], ['#111111', 'ดำ'], ['#ffffff', 'ขาว'], ['#ffd000', 'เหลือง'], ['#ec3013', 'แดง'], ['#605d5d', 'เทา'], ['#1f5fa8', 'น้ำเงิน'], ['#2d7a4f', 'เขียว']];
@@ -1150,6 +1201,7 @@ class Component extends DCLogic {
       camFilters: [['all', 'ทั้งหมด'], ['none', 'ยังไม่มีภาพ'], ['has', 'มีภาพแล้ว']].map(([v, t]) => ({ t, s: segBtn(s.camFilter === v), onClick: () => this.setState({ camFilter: v }) })),
       camList,
       paperText: `ขนาดแผ่นงาน ${cols} × ${rows} ช่อง · ชีสเดิมเริ่มที่ช่อง (${ox}, ${oy})`,
+      ...this.sheetVals(ready),
       paperActs: [['ขยายรอบด้าน +10', () => this.growPaper(10)], ['ขยายรอบด้าน +30', () => this.growPaper(30)], ['ตัดขอบให้พอดีงาน', () => this.trimPaper()], ['ดูทั้งแผ่น', this.fitPaper]].map(([t, onClick]) => ({ t, onClick })),
       impText: s.imp.text, onImpText: ev => this.setState({ imp: { ...s.imp, text: ev.target.value } }),
       impFields: [[`วางที่คอลัมน์ (ว่าง = ${ox}, ตรงชีสเดิม)`, 'ox'], [`วางที่แถว (ว่าง = ${oy})`, 'oy']].map(([label, k]) => ({ label, value: s.imp[k], onChange: ev => this.setState({ imp: { ...s.imp, [k]: ev.target.value } }) })),

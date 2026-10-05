@@ -1,7 +1,8 @@
 /* BPL CCTV Layout — online sync through a private GitHub data repo (see config.js)
    Nothing is readable without a token: a read-only token opens view, a read/write one opens edit.
    People sign in with an ID + password that decrypts their token (see "sign-in" below).
-   branch main   : layout.json + images.json (index), normal history
+   branch main   : sheets.json (list of sheets + which one the floor sees), one layout file per sheet
+                   (layout.json for the first sheet, sheets/<id>.json for the rest), images.json (index)
    branch images : the captures, rewritten as a single parentless commit on every change so replaced
                    or deleted pictures drop out of the repo instead of piling up in history
    view  : reads layout.json + images.json through the GitHub API, polls the branch head for changes
@@ -126,10 +127,25 @@
     etag = r.headers.get('ETag') || ''; headSha = (await r.json()).object.sha;
     return headSha;
   }
-  async function fetchRemote(sha) {
+  // ---------- sheets ----------
+  // A data repo from before sheets existed has no sheets.json: it is one sheet, 'main', stored in layout.json.
+  // Captures are keyed by camera number and shared by every sheet.
+  const LS_SHEET = 'bpl.sheet', MAIN = 'main';
+  const sheetFile = id => id === MAIN ? 'layout.json' : 'sheets/' + id + '.json';
+  const key = (base, id) => id === MAIN ? base : base + ':' + id;   // per-sheet draft keys in localStorage
+  let sheetId = MAIN;
+  async function readSheets(sha) {
+    const s = await readJSON('sheets.json', sha);
+    return s && Array.isArray(s.sheets) && s.sheets.length ? s : { active: MAIN, sheets: [{ id: MAIN, name: '', updated: 0 }] };
+  }
+  // want = sheet to open; anything unknown falls back to the sheet the floor sees
+  async function fetchRemote(sha, want) {
     sha = sha || await head();
-    const [layout, idx] = await Promise.all([readJSON('layout.json', sha), readJSON('images.json', sha)]);
-    return { sha, layout: layout && B.paper(layout), idx: idx || {} };
+    const [sheets, idx] = await Promise.all([readSheets(sha), readJSON('images.json', sha)]);
+    const sheet = want && sheets.sheets.some(s => s.id === want) ? want : sheets.active;
+    const layout = await readJSON(sheetFile(sheet), sha), me = sheets.sheets.find(s => s.id === sheet);
+    if (layout && me) { me.name = me.name || layout.name || ''; me.updated = me.updated || layout.updated || 0; }
+    return { sha, sheets, sheet, layout: layout && B.paper(layout), idx: idx || {} };
   }
 
   // ---------- captures: fetched on demand, kept in the browser cache by blob sha ----------
@@ -161,9 +177,12 @@
 
   // ---------- view ----------
   const keep = r => { try { localStorage.setItem(LS_VIEW, JSON.stringify({ layout: r.layout, idx: r.idx })); } catch (e) {} };
-  const viewData = (r, online) => ({ layout: r.layout || B.defaultLayout(), imgs: imgMap(r.idx), online });
-  async function viewLoad() {
-    try { const r = await fetchRemote(); keep(r); return viewData(r, true); }
+  const viewData = (r, online) => ({ layout: r.layout || B.defaultLayout(), imgs: imgMap(r.idx), online, preview: !!(r.sheets && r.sheet !== r.sheets.active) });
+  // an editor may look at any sheet (?sheet=id); floor staff always get the active one
+  let viewWant = '';
+  async function viewLoad(want) {
+    viewWant = cfg().role === 'edit' ? (want || '') : '';
+    try { const r = await fetchRemote(null, viewWant); if (!viewWant) keep(r); return viewData(r, true); }
     catch (e) {
       if (isAuth(e) && !isLimit(e)) return { authError: true, message: e.message };
       let r = { layout: null, idx: {} }; try { r = JSON.parse(localStorage.getItem(LS_VIEW)) || r; } catch (e2) {}
@@ -173,7 +192,7 @@
   function watch(cb, ms = 20000) {
     const poll = async () => {
       if (document.hidden) return;
-      try { const was = headSha, sha = await head(); if (sha !== was) { const r = await fetchRemote(sha); keep(r); cb(viewData(r, true)); } } catch (e) {}
+      try { const was = headSha, sha = await head(); if (sha !== was) { const r = await fetchRemote(sha, viewWant); if (!viewWant) keep(r); cb(viewData(r, true)); } } catch (e) {}
     };
     setInterval(poll, ms); document.addEventListener('visibilitychange', poll);
     setInterval(async () => { if (!(await accessFresh())) logout(); }, 600000);
@@ -182,9 +201,9 @@
   // ---------- edit: local draft ----------
   // IndexedDB holds only unpublished image changes: { src, t } = new capture, { del, t } = removal
   const raw = { all: B.img.all, set: B.img.set, del: B.img.del, clear: B.img.clear };
-  let remote = { layout: null, idx: {} };
-  const markDirty = () => localStorage.setItem(LS_DIRTY, '1');
-  const localSave = B.save;
+  let remote = { layout: null, idx: {}, sheets: null };
+  const markDirty = () => localStorage.setItem(key(LS_DIRTY, sheetId), '1');
+  const localSave = l => localStorage.setItem(key(LS, sheetId), JSON.stringify(l));
   B.save = l => { localSave(l); markDirty(); };
 
   async function imgAll() {
@@ -219,23 +238,60 @@
 
   async function editLoad() {
     let online = true;
-    try { remote = await fetchRemote(); } catch (e) { if (isAuth(e) && !isLimit(e)) return { authError: true, message: e.message }; online = false; }
-    let local = null; try { const s = localStorage.getItem(LS); if (s) local = B.paper(JSON.parse(s)); } catch (e) {}
-    const draft = localStorage.getItem(LS_DIRTY) === '1', rl = remote.layout;
+    const want = localStorage.getItem(LS_SHEET) || '';
+    try { remote = await fetchRemote(null, want); sheetId = remote.sheet; } catch (e) { if (isAuth(e) && !isLimit(e)) return { authError: true, message: e.message }; online = false; sheetId = want || MAIN; }
+    let local = null; try { const s = localStorage.getItem(key(LS, sheetId)); if (s) local = B.paper(JSON.parse(s)); } catch (e) {}
+    const draft = localStorage.getItem(key(LS_DIRTY, sheetId)) === '1', rl = remote.layout;
     // newer copy wins; a local draft older than what is online is left for the editor to resolve (stale)
     const stale = !!(rl && local && draft && (local.updated || 0) < (rl.updated || 0));
     const layout = !rl ? (local || B.defaultLayout()) : !local ? rl : ((local.updated || 0) >= (rl.updated || 0) || draft) ? local : rl;
     if (layout === rl) adopt(rl);
     const pend = await raw.all();
-    return { layout, stale, remoteUpdated: rl ? rl.updated : null, online, imgs: await imgAll(), dirty: draft || !rl || Object.keys(pend).length > 0 };
+    return { layout, stale, remoteUpdated: rl ? rl.updated : null, online, imgs: await imgAll(), dirty: draft || !rl || Object.keys(pend).length > 0, sheet: sheetId, sheets: remote.sheets };
   }
-  function adopt(l) { localSave(l); localStorage.setItem(LS_BASE, String(l.updated || 0)); localStorage.removeItem(LS_DIRTY); }
+  function adopt(l) { localSave(l); localStorage.setItem(key(LS_BASE, sheetId), String(l.updated || 0)); localStorage.removeItem(key(LS_DIRTY, sheetId)); }
   async function useRemote() {
     adopt(remote.layout);
     if (Object.keys(await raw.all()).length) markDirty();
     return remote.layout;
   }
   const defaultLayout = async () => { const l = await readJSON('default-layout.json', cfg().branch); return l && B.paper(l); };
+
+  // ---------- edit: sheets ----------
+  const entry = (path, rest) => Object.assign({ path, mode: '100644', type: 'blob' }, rest);
+  // one commit on main; content null removes the file. -> the sheet list as of that commit
+  async function commitSheets(change, message) {
+    etag = ''; const sha = await head(), commit = await gh('/git/commits/' + sha), sheets = await readSheets(sha);
+    const main = sheets.sheets.find(s => s.id === MAIN);
+    if (main && !main.name) { const l = await readJSON('layout.json', sha); main.name = (l && l.name) || 'แผ่นหลัก'; main.updated = (l && l.updated) || 0; }
+    const files = change(sheets) || [];
+    const tree = files.map(f => entry(f.path, f.content === null ? { sha: null } : { content: f.content })).concat(entry('sheets.json', { content: JSON.stringify(sheets) }));
+    const t = await gh('/git/trees', { method: 'POST', body: { base_tree: commit.tree.sha, tree } });
+    const cm = await gh('/git/commits', { method: 'POST', body: { message, tree: t.sha, parents: [sha] } });
+    await gh('/git/refs/heads/' + cfg().branch, { method: 'PATCH', body: { sha: cm.sha } });
+    remote.sheets = sheets; return sheets;
+  }
+  // new sheet, blank or a copy of `from`; this device switches to it on its next load
+  async function sheetCreate(name, from) {
+    const id = 's' + Date.now().toString(36), now = Date.now();
+    const layout = Object.assign({}, from || B.defaultLayout(), { name, updated: now });
+    const sheets = await commitSheets(s => { s.sheets.push({ id, name, updated: now }); return [{ path: sheetFile(id), content: JSON.stringify(layout) }]; }, 'แผ่นงานใหม่: ' + name);
+    localStorage.setItem(LS_SHEET, id);
+    return sheets;
+  }
+  const sheetOpen = id => localStorage.setItem(LS_SHEET, id);
+  // choose the sheet the floor sees
+  const sheetActivate = id => commitSheets(s => { if (!s.sheets.some(x => x.id === id)) throw new Error('ไม่พบแผ่นงานนี้'); s.active = id; }, 'หน้างานเห็นแผ่น: ' + id);
+  async function sheetDelete(id) {
+    const sheets = await commitSheets(s => {
+      if (s.active === id) throw new Error('ลบแผ่นที่หน้างานเห็นอยู่ไม่ได้ ให้เลือกแผ่นอื่นให้หน้างานก่อน');
+      if (s.sheets.length < 2) throw new Error('ต้องเหลืออย่างน้อย 1 แผ่น');
+      s.sheets = s.sheets.filter(x => x.id !== id); return [{ path: sheetFile(id), content: null }];
+    }, 'ลบแผ่นงาน: ' + id);
+    [LS, LS_DIRTY, LS_BASE].forEach(b => localStorage.removeItem(key(b, id)));
+    if (id === sheetId) localStorage.removeItem(LS_SHEET);
+    return sheets;
+  }
 
   // ---------- edit: publish (one commit: layout + image index + changed images) ----------
   const fileOf = no => String(no).trim().replace(/[^A-Za-z0-9_-]/g, '_') || '_';
@@ -245,11 +301,10 @@
     if (!hasToken()) { const e = new Error('ยังไม่ได้ตั้งค่า GitHub token'); e.code = 'NO_TOKEN'; throw e; }
     const pend = await raw.all(), todo = Object.keys(pend);
     etag = ''; const sha = await head(), commit = await gh('/git/commits/' + sha);
-    const [headLayout, headIdx] = await Promise.all([readJSON('layout.json', sha), readJSON('images.json', sha)]);
-    const base = +localStorage.getItem(LS_BASE) || 0, idx = headIdx || {};
+    const [headLayout, headIdx, sheets] = await Promise.all([readJSON(sheetFile(sheetId), sha), readJSON('images.json', sha), readSheets(sha)]);
+    const base = +localStorage.getItem(key(LS_BASE, sheetId)) || 0, idx = headIdx || {};
     if (!opt.force && headLayout && (headLayout.updated || 0) > base) { const e = new Error('มีการบันทึกจากเครื่องอื่น'); e.code = 'CONFLICT'; e.remoteUpdated = headLayout.updated; throw e; }
 
-    const entry = (path, rest) => Object.assign({ path, mode: '100644', type: 'blob' }, rest);
     const itree = [], file = (path, rest) => itree.push(entry(path, rest));
     const done = []; let left = 0;
     for (const no of todo) {
@@ -279,17 +334,19 @@
       else await gh('/git/refs', { method: 'POST', body: { ref: 'refs/heads/' + IMG_BRANCH, sha: ic.sha } });
     }
     const out = Object.assign({}, layout, { updated: Date.now() });
-    const tree = [entry('layout.json', { content: JSON.stringify(out) }), entry('images.json', { content: JSON.stringify(idx) })];
+    let me = sheets.sheets.find(s => s.id === sheetId); if (!me) sheets.sheets.push(me = { id: sheetId });
+    me.name = out.name || ''; me.updated = out.updated;
+    const tree = [entry(sheetFile(sheetId), { content: JSON.stringify(out) }), entry('images.json', { content: JSON.stringify(idx) }), entry('sheets.json', { content: JSON.stringify(sheets) })];
     const t = await gh('/git/trees', { method: 'POST', body: { base_tree: commit.tree.sha, tree } });
     const cm = await gh('/git/commits', { method: 'POST', body: { message: 'อัปเดตเลเอ้า ' + new Date(out.updated).toLocaleString('th-TH'), tree: t.sha, parents: [sha] } });
     await gh('/git/refs/heads/' + c.branch, { method: 'PATCH', body: { sha: cm.sha } });
 
-    remote = { layout: out, idx };
+    remote = { layout: out, idx, sheets };
     const now = await raw.all();
     for (const no of done) if (now[no] && now[no].t === pend[no].t) await raw.del(no);
     adopt(out); if (left) markDirty();
-    return { layout: out, left };
+    return { layout: out, left, sheets };
   }
 
-  B.cloud = { cfg, setCfg, hasToken, probe, gate, logout, login, accessList, accessFresh, accessInfo, setAccess, PW_MIN, viewLoad, watch, editLoad, useRemote, defaultLayout, publish };
+  B.cloud = { cfg, setCfg, hasToken, probe, gate, logout, login, accessList, accessFresh, accessInfo, setAccess, PW_MIN, viewLoad, watch, editLoad, useRemote, defaultLayout, publish, sheetCreate, sheetOpen, sheetActivate, sheetDelete };
 })();

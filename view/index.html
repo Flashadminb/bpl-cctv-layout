@@ -40,7 +40,7 @@ input[type=range]{accent-color:#ffd000;width:100%}
       <div style="font-weight:800;font-size:16px;line-height:1.1">CCTV Floor View</div>
       <div style="font-size:11px;color:#8a8a8a">{{ layoutName }}</div>
     </div>
-    <span data-hide-narrow="1" style="white-space:nowrap;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;padding:4px 8px;border:1px solid #ffd000;color:#ffd000">หน้างาน · ดูอย่างเดียว</span>
+    <span style="{{ modeStyle }}">{{ modeLabel }}</span>
     <div style="position:relative;flex:1 1 200px;max-width:520px;min-width:120px">
       <input class="input" placeholder="ค้นหา สาขา · FD · เลขกล้อง · ประตู · HUB" value="{{ q }}" onChange="{{ onQ }}" onKeyDown="{{ onQKey }}" style="height:40px;width:100%;font-size:14px;padding-left:12px"/>
       <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
@@ -182,7 +182,7 @@ class Component extends DCLogic {
       if (!window.BPL || !BPL.cloud) return setTimeout(go, 40);
       if (!BPL.cloud.hasToken()) { BPL.cloud.gate(); return; }
       if (!(await BPL.cloud.accessFresh())) { BPL.cloud.logout(); return; }
-      const d = await BPL.cloud.viewLoad();
+      const d = await BPL.cloud.viewLoad(new URLSearchParams(location.search).get('sheet'));
       if (d.authError) { BPL.cloud.logout(); return; }
       this.apply(d, this.fit);
       BPL.cloud.watch(d => { const before = JSON.stringify(BPL.bounds(this.els())); this.apply(d, () => { const after = BPL.bounds(this.els()); if (!this.userMoved || JSON.stringify(after) !== before) { this.userMoved = false; this.fit(); } }); });
@@ -194,7 +194,7 @@ class Component extends DCLogic {
     window.addEventListener('pointermove', this._mv); window.addEventListener('pointerup', this._up); window.addEventListener('keydown', this._kd);
   }
   componentWillUnmount() { window.removeEventListener('pointermove', this._mv); window.removeEventListener('pointerup', this._up); window.removeEventListener('keydown', this._kd); }
-  apply(d, cb) { this.setState({ ready: true, layout: d.layout, imgs: d.imgs, online: d.online }, cb); }
+  apply(d, cb) { this.setState({ ready: true, layout: d.layout, imgs: d.imgs, online: d.online, preview: !!d.preview }, cb); }
   canvasRef = el => { if (!el || el === this.cv) return; this.cv = el;
     this.ro = new ResizeObserver(() => { const r = el.getBoundingClientRect(); if (!this.userMoved && this.state.ready && r.width > 200 && r.height > 150) this.fit(); }); this.ro.observe(el); el.addEventListener('wheel', e => { e.preventDefault(); const r = el.getBoundingClientRect(); this.zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false }); };
   els() { return this.state.layout ? this.state.layout.elements : []; }
@@ -295,6 +295,8 @@ class Component extends DCLogic {
 
     return {
       layoutName: s.layout ? s.layout.name : 'กำลังโหลด…', updated: upd, updatedLabel: s.online ? 'อัปเดต' : 'ออฟไลน์ · ข้อมูลล่าสุด',
+      modeLabel: s.preview ? 'ตัวอย่าง · หน้างานยังไม่เห็นแผ่นนี้' : 'หน้างาน · ดูอย่างเดียว',
+      modeStyle: { whiteSpace: 'nowrap', flex: 'none', fontSize: 11, fontWeight: 800, letterSpacing: '.08em', padding: '4px 8px', border: '1px solid ' + (s.preview ? '#ff9f0a' : '#ffd000'), color: s.preview ? '#111' : '#ffd000', background: s.preview ? '#ff9f0a' : 'transparent' },
       q: s.q, onQ: ev => this.setState({ q: ev.target.value }), onQKey: ev => { if (ev.key === 'Enter' && hits[0]) { this.focus(hits[0]); } },
       showResults: !!s.q.trim(), results, resultCount: hits.length,
       toggleCones: () => this.setState({ showCones: !s.showCones }),
