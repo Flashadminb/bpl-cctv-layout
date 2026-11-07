@@ -37,7 +37,7 @@
     const zip = entries(buf);
     const wb = await read(zip, 'xl/workbook.xml'), rels = await read(zip, 'xl/_rels/workbook.xml.rels');
     const target = {}; (rels.match(/<Relationship\b[^>]*>/g) || []).forEach(t => target[attr(t, 'Id')] = attr(t, 'Target'));
-    const sheets = (wb.match(/<sheet\b[^>]*>/g) || []).map(t => ({ name: attr(t, 'name'), hidden: !!attr(t, 'state'), path: 'xl/' + (target[attr(t, 'r:id')] || '').replace(/^\/?xl\//, '') }));
+    const sheets = (wb.match(/<sheet\b[^>]*>/g) || []).map(t => ({ name: attr(t, 'name'), hidden: /hidden/i.test(attr(t, 'state')), path: 'xl/' + (target[attr(t, 'r:id')] || '').replace(/^\/?xl\//, '') }));
 
     let strings = null, fills = null;
     async function shared() {
@@ -82,12 +82,22 @@
   // Sheet cells -> elements at sheet coordinates. Text rules are BPL.parseSheet's (same as pasting from Sheets);
   // the file adds what a paste loses: merged-cell sizes, fill colours and camera numbers stored as numbers.
   function toElements(sh) {
-    const grid = [], fillAt = {}, mergeAt = {}, at = (x, y) => x + ',' + y;
+    const grid = [], fillAt = {}, mergeAt = {}, nameAt = {}, at = (x, y) => x + ',' + y;
+    const camList = /^\d{3}(\s*,\s*\d{3})*\s*,?$/;
     sh.merges.forEach(m => mergeAt[at(m.x, m.y)] = m);
     sh.cells.forEach(c => {
       const colored = c.fill && c.fill !== 'FFFFFF' && c.fill !== 'theme'; if (colored) fillAt[at(c.x, c.y)] = c.fill;
       let t = c.t.replace(/\r?\n/g, '\u2028').replace(/\t/g, ' ');
+      if (/^\d(\.\d+)?E\+?\d+$/i.test(t)) t = String(Math.round(Number(t)));      // big numbers come out as 2.3823624E8
+      if (/^\d+\.0+$/.test(t)) t = t.replace(/\.0+$/, '');                      // Google exports whole numbers as "292.0"
+      if (/^\d{6,9}$/.test(t) && t.length % 3 === 0) t = t.match(/\d{3}/g).join(', ');  // "121,051" typed as a thousands-formatted number = two cameras
       if (/^\d{1,2}$/.test(t) && colored && t !== '0') t = t.padStart(3, '0');
+      // a place name and its cameras in one cell ("\u0e2b\u0e49\u0e2d\u0e07\u0e0a\u0e48\u0e32\u0e07 / 288", "012,061 / \u0e17\u0e32\u0e07\u0e02\u0e36\u0e49\u0e19"): cameras on the map, the name on them
+      const lines = t.split(/\s*[\u2028/]\s*/).filter(Boolean);
+      if (lines.length > 1) {
+        const ci = camList.test(lines[lines.length - 1]) ? lines.length - 1 : camList.test(lines[0]) ? 0 : -1;
+        if (ci >= 0) { nameAt[at(c.x, c.y)] = lines.filter((_, i) => i !== ci).join(' '); t = lines[ci].replace(/,\s*$/, ''); }
+      }
       if (/^[-.0\s]*$/.test(t) || /^#(N\/A|REF!|VALUE!)/.test(t)) return;
       (grid[c.y] = grid[c.y] || [])[c.x] = t;
     });
@@ -100,6 +110,12 @@
         if (m && m.w > 1) e.w = m.w; else if (w > 1) e.w = w;
       } else if (e.type === 'dock' && m) { e.w = m.w; e.h = m.h; }
       else if (e.type === 'text' && m) { e.w = m.w; e.h = m.h; if (fill) Object.assign(e, { type: 'zone', tone: 'outline' }), delete e.size; }
+      else if (e.type === 'cam') { const k = at(Math.floor(e.x + 0.5), e.y); if (nameAt[k]) e.name = nameAt[k]; }
+    });
+    // the place itself, when its cell is a filled block
+    Object.keys(nameAt).forEach(k => {
+      const [x, y] = k.split(',').map(Number), m = mergeAt[k];
+      if (m && fillAt[k]) els.push({ id: root.BPL.uid(), type: 'zone', x, y, w: m.w, h: m.h, label: nameAt[k], tone: 'outline' });
     });
     // a camera written under several cells is still one camera: keep its first position
     const seen = new Set();

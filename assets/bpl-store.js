@@ -224,8 +224,8 @@
       if (/^OUT\s*FD\s*\d+/i.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'fd', v: s.replace(/^OUT\s*/i, '').replace(/\s+/g, '') }); return; }
       if (/^\d{2}[AB]$/i.test(s) || /^D\d{2}/.test(s)) { (parts[x] = parts[x] || []).push({ y, k: 'chute', v: s }); return; }
       if (isCam(s)) { const nums = s.includes('-') ? (([a, b]) => { const r2 = []; for (let i = +a; i <= +b; i++) r2.push(String(i).padStart(3, '0')); return r2; })(s.split('-').map(t => t.trim())) : s.split(',').map(t => t.trim()); nums.forEach((n, i) => out.push({ id: uid(), type: 'cam', no: n, name: '', note: '', x: x + (nums.length > 1 ? (i - (nums.length - 1) / 2) * 0.5 : 0), y, w: 1, h: 1, dir: 90, fov: 70, range: 120 })); return; }
-      if (/^(OUT|IN)\s*(FD\b|\d{2,3})/i.test(s)) { const [l, ...h] = s.split('\u2028'); out.push({ id: uid(), type: 'dock', x, y, w: 2, h: 3, label: l.replace(/\s+/g, ' ').trim(), hub: h.join(' ').trim(), note: '' }); return; }
-      const lane = /BPL-?\s*(OUT|IN)\s*-\s*\d+\s*(LH|FD)?/i.exec(s);
+      if (/^(OUT|IN)\s*(FD\b|\d{2,3})/i.test(s)) { out.push({ id: uid(), type: 'dock', x, y, w: 2, h: 3, label: s.replace(/[\s\u2028/]+/g, ' ').trim(), hub: '', note: '' }); return; }
+      const lane = /BPLL?-?\s*(OUT|IN)\s*-\s*\d+\s*(LH|FD)?/i.exec(s);
       if (lane) { out.push({ id: uid(), type: 'dock', x, y, w: Math.min(runRight(r, c, 8), 8), h: 1, label: lane[0].replace(/\s+/g, ' '), hub: s.replace(lane[0], '').replace(/\s+/g, ' ').trim(), note: '' }); return; }
       if (s === 'เสา') { out.push({ id: uid(), type: 'pillar', x, y, w: 1, h: 1, label: 'เสา' }); return; }
       out.push({ id: uid(), type: 'text', x, y, w: Math.min(runRight(r, c, 6), 6), h: 1, label: s.replace(/\u2028/g, ' '), size: 11 });

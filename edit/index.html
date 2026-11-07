@@ -1011,8 +1011,10 @@ class Component extends DCLogic {
   xlsRun = () => {
     const src = this.xlsEls || []; if (!src.length) { this.say('ยังไม่มีข้อมูลให้แปลง'); return; }
     const o = this.off(), l = this.state.layout, out = src.map(e => ({ ...e, id: BPL.uid(), x: e.x + o.ox, y: e.y + o.oy }));
+    // size the paper by what was drawn: sheets often carry formatting far below the last used row
+    const b = BPL.bounds(src);
     this.pushHist();
-    this.setLayout({ ...l, elements: this.state.imp.mode === 'replace' ? out : [...this.els(), ...out], cols: Math.max(l.cols || 0, this.xlsSize.cols + o.ox * 2), rows: Math.max(l.rows || 0, this.xlsSize.rows + o.oy * 2), updated: Date.now() });
+    this.setLayout({ ...l, elements: this.state.imp.mode === 'replace' ? out : [...this.els(), ...out], cols: Math.max(l.cols || 0, Math.ceil(b.x + b.w) + o.ox * 2), rows: Math.max(l.rows || 0, Math.ceil(b.y + b.h) + o.oy * 2), updated: Date.now() });
     this.setState({ sel: [], tab: 'props' }); this.say('นำเข้า ' + out.length + ' ชิ้นจาก Excel แล้ว · ตรวจดูแล้วกดบันทึก (กดย้อนกลับได้)'); setTimeout(() => this.fit(), 30);
   };
   runImport = () => {
